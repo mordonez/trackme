@@ -31,7 +31,7 @@ function putSecret(name, value, workerName) {
       if (code === 0) {
         resolve();
       } else {
-        reject(new Error(`Process exited with code ${code}`));
+        reject(new Error(`Failed to set secret ${name} for worker ${workerName}: process exited with code ${code}`));
       }
     });
   });
