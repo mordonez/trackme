@@ -82,8 +82,15 @@ jobs:
           USER_VALUE="${{ secrets.PREVIEW_USER || 'admin' }}"
           PASSWORD_VALUE="${{ secrets.PREVIEW_PASSWORD_BASE || 'preview' }}-${{ github.event.pull_request.number }}"
 
-          echo "$USER_VALUE" | npx wrangler secret put USER --name ${{ env.WORKER_NAME }} --force
-          echo "$PASSWORD_VALUE" | npx wrangler secret put PASSWORD --name ${{ env.WORKER_NAME }} --force
+          # Write secrets to temporary files
+          printf '%s' "$USER_VALUE" > user_secret.txt
+          printf '%s' "$PASSWORD_VALUE" > password_secret.txt
+
+          npx wrangler secret put USER --name ${{ env.WORKER_NAME }} --force --from-file user_secret.txt
+          npx wrangler secret put PASSWORD --name ${{ env.WORKER_NAME }} --force --from-file password_secret.txt
+
+          # Clean up temporary files
+          rm -f user_secret.txt password_secret.txt
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
