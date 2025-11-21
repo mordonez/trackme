@@ -403,7 +403,7 @@ const CSS_STYLES = `
 
 .success {
   background-color: #efe;
-  color: #3c3;
+  color: #2d7d32;
   padding: 1rem;
   border-radius: var(--border-radius);
   margin-bottom: 1rem;
@@ -908,7 +908,7 @@ function generateIndexHTML() {
     </main>
 
     <!-- Modal for notes -->
-    <dialog id="modal" class="modal" onclick="if(event.target===this) closeModal()">
+    <div id="modal" class="modal" role="dialog" aria-labelledby="modalTitle" aria-modal="true" onclick="if(event.target===this) closeModal()">
         <article class="modal-content">
             <header>
                 <h3 id="modalTitle">Agregar Notas</h3>
@@ -924,7 +924,7 @@ function generateIndexHTML() {
                 </div>
             </footer>
         </article>
-    </dialog>
+    </div>
 
     <script>${JS_MAIN_APP}</script>
 </body>
