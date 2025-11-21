@@ -132,9 +132,10 @@ function escapeHtml(text) {
     '<': '&lt;',
     '>': '&gt;',
     '"': '&quot;',
-    "'": '&#039;'
+    "'": '&#039;',
+    '\\': '&#92;'
   };
-  return String(text).replace(/[&<>"']/g, m => map[m]);
+  return String(text).replace(/[&<>"'\\]/g, m => map[m]);
 }
 
 // ============================================================================
@@ -251,6 +252,17 @@ button.danger {
 
 button.danger:hover {
   background: #dc2626;
+}
+
+button.outline.danger {
+  background: transparent;
+  border: 1px solid var(--color-error);
+  color: var(--color-error);
+}
+
+button.outline.danger:hover {
+  background: var(--color-error);
+  color: white;
 }
 
 input, textarea {
@@ -527,9 +539,12 @@ app.use('*', async (c, next) => {
 });
 
 // Database initialization middleware
+// Note: CREATE TABLE IF NOT EXISTS and CREATE INDEX IF NOT EXISTS are idempotent
+// SQLite handles this efficiently, so the performance impact is minimal
 app.use('*', async (c, next) => {
   const db = c.env.DB;
   try {
+    // These operations are idempotent and very fast if tables already exist
     await db.prepare(`
       CREATE TABLE IF NOT EXISTS symptom_types (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -835,7 +850,10 @@ app.get('/api/symptom-buttons', authMiddleware, async (c) => {
     }
 
     const buttons = results.map(type => 
-      `<button class="symptom-btn" onclick="openModal(${type.id}, '${escapeHtml(type.name).replace(/'/g, "\\'")}')">
+      `<button class="symptom-btn" 
+              data-symptom-id="${type.id}" 
+              data-symptom-name="${escapeHtml(type.name)}"
+              onclick="openModal(this.dataset.symptomId, this.dataset.symptomName)">
         ${escapeHtml(type.name)}
       </button>`
     ).join('');
