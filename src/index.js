@@ -623,15 +623,21 @@ label {
   padding: 2rem;
   color: var(--color-text-light);
 }
-`;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 1.25rem;
-  }
 
-  .symptom-btn {
-    padding: 1.5rem;
-    font-size: 1.125rem;
-  }
+.text-muted {
+  color: var(--color-text-light);
+}
+
+.w-full {
+  width: 100%;
+}
+
+.header-section {
+  margin: 1rem 0 1.5rem;
+}
+
+.subtitle {
+  margin-bottom: 1.5rem;
 }
 `;
 
@@ -1064,7 +1070,7 @@ function generateIndexHTML() {
     <div id="loginForm" class="container">
         <div class="card" style="max-width: 400px; margin: 3rem auto;">
             <h1>🩺 TrackMe</h1>
-            <p style="color: var(--color-text-light); margin-bottom: 1.5rem;">Seguimiento simple de síntomas</p>
+            <p class="text-muted subtitle">Seguimiento simple de síntomas</p>
             <div id="loginError" class="hidden"></div>
             <form onsubmit="event.preventDefault(); login();">
                 <div class="form-group">
@@ -1075,16 +1081,16 @@ function generateIndexHTML() {
                     <label>Contraseña</label>
                     <input type="password" id="password" placeholder="Tu contraseña" autocomplete="current-password" maxlength="100" required>
                 </div>
-                <button type="submit" style="width: 100%;">Entrar</button>
+                <button type="submit" class="w-full">Entrar</button>
             </form>
         </div>
     </div>
 
     <!-- Main App -->
     <div id="mainApp" class="container hidden">
-        <div style="margin: 1rem 0 1.5rem;">
+        <div class="header-section">
             <h1>🩺 TrackMe</h1>
-            <p style="color: var(--color-text-light);">Registra tus síntomas</p>
+            <p class="text-muted">Registra tus síntomas</p>
         </div>
 
         <div class="top-nav">
@@ -1140,9 +1146,9 @@ function generateAdminHTML() {
 </head>
 <body>
     <div class="container">
-        <div style="margin: 1rem 0 1.5rem;">
+        <div class="header-section">
             <h1>⚙️ Panel Admin</h1>
-            <p style="color: var(--color-text-light);">Gestiona los síntomas</p>
+            <p class="text-muted">Gestiona los síntomas</p>
         </div>
 
         <div class="top-nav">
