@@ -280,40 +280,240 @@ function htmlResponse(html, headers = {}) {
 // ============================================================================
 
 const CSS_STYLES = `
-/* ============================================================================
-   CUSTOM STYLES for TrackMe with Pico CSS
-   Pico CSS provides base responsive styles, we only add app-specific styles
-   ============================================================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-/* Symptom Grid - Responsive button grid */
+:root {
+  --color-bg: #f5f7fa;
+  --color-surface: #ffffff;
+  --color-primary: #3b82f6;
+  --color-primary-dark: #2563eb;
+  --color-text: #1e293b;
+  --color-text-light: #64748b;
+  --color-border: #e2e8f0;
+  --color-success: #10b981;
+  --color-error: #ef4444;
+  --radius: 8px;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.6;
+  font-size: 16px;
+}
+
+.container {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* Typography */
+h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: var(--color-text);
+}
+
+h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 1.5rem 0 0.75rem;
+  color: var(--color-text);
+}
+
+/* Card */
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1rem;
+}
+
+/* Button Base */
+button, .btn {
+  display: inline-block;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-align: center;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+  background: var(--color-primary);
+  color: white;
+}
+
+button:hover, .btn:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+button:active, .btn:active {
+  transform: translateY(0);
+}
+
+button.secondary {
+  background: var(--color-text-light);
+}
+
+button.secondary:hover {
+  background: var(--color-text);
+}
+
+button.outline {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+button.outline:hover {
+  background: var(--color-bg);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+button.danger {
+  background: var(--color-error);
+}
+
+button.danger:hover {
+  background: #dc2626;
+}
+
+/* Input */
+input, textarea {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 0.9375rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--color-text);
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+/* Symptom Grid */
 .symptom-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 0.75rem;
   margin: 1rem 0;
 }
 
+@media (min-width: 480px) {
+  .symptom-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 .symptom-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--color-primary);
   color: white;
   border: none;
-  padding: 0.875rem;
-  border-radius: var(--border-radius);
-  font-size: 0.875rem;
-  font-weight: 600;
+  padding: 1rem;
+  border-radius: var(--radius);
+  font-size: 0.9375rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+  min-height: 65px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
+  box-shadow: var(--shadow-sm);
 }
 
 .symptom-btn:hover {
+  background: var(--color-primary-dark);
+  box-shadow: var(--shadow);
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
 }
 
 .symptom-btn:active {
   transform: translateY(0);
+}
+
+/* Top Navigation */
+.top-nav {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.top-nav button {
+  flex: 1;
+  min-width: 120px;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+}
+
+/* History */
+.history-item {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  box-shadow: var(--shadow-sm);
+  border-left: 3px solid var(--color-primary);
+}
+
+.history-date {
+  color: var(--color-primary);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+}
+
+.history-type {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.history-notes {
+  color: var(--color-text-light);
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.history-time {
+  color: var(--color-text-light);
+  font-size: 0.8125rem;
+  margin-top: 0.5rem;
 }
 
 /* Modal */
@@ -324,10 +524,10 @@ const CSS_STYLES = `
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   align-items: center;
   justify-content: center;
-  z-index: 999;
+  z-index: 1000;
   padding: 1rem;
 }
 
@@ -336,168 +536,94 @@ const CSS_STYLES = `
 }
 
 .modal-content {
-  background: var(--background-color);
+  background: var(--color-surface);
+  border-radius: var(--radius);
   padding: 1.5rem;
-  border-radius: var(--border-radius);
   max-width: 500px;
   width: 100%;
-  max-height: 85vh;
+  max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  box-shadow: var(--shadow-lg);
 }
 
-/* History Items */
-.history-item {
-  padding: 1rem;
-  margin-bottom: 0.75rem;
-  background: var(--card-background-color);
-  border: 1px solid var(--muted-border-color);
-  border-radius: var(--border-radius);
-  transition: transform 0.2s, box-shadow 0.2s;
+.modal h3 {
+  margin-bottom: 1rem;
+  font-size: 1.125rem;
 }
 
-.history-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-
-.history-date {
-  color: var(--primary);
-  font-weight: 600;
-  font-size: 0.875rem;
-  margin-bottom: 0.25rem;
-}
-
-.history-type {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-}
-
-.history-notes {
-  color: var(--muted-color);
-  font-size: 0.875rem;
-  font-style: italic;
-  margin-top: 0.5rem;
-}
-
-.history-time {
-  color: var(--muted-color);
-  font-size: 0.75rem;
-  margin-top: 0.25rem;
-}
-
-/* Symptom Admin List */
-.symptom-list {
+.modal-actions {
   display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 0.75rem;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
+}
+
+/* Admin Symptom List */
+.symptom-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .symptom-item {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
-  background: var(--card-background-color);
-  border: 1px solid var(--muted-border-color);
-  border-radius: var(--border-radius);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.symptom-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  gap: 1rem;
 }
 
 .symptom-name {
   font-weight: 600;
   flex: 1;
-  margin-right: 1rem;
 }
 
 .symptom-date {
-  font-size: 0.75rem;
-  color: var(--muted-color);
+  font-size: 0.8125rem;
+  color: var(--color-text-light);
   margin-top: 0.25rem;
 }
 
-/* Utility Classes */
-.subtitle {
-  color: var(--muted-color);
+.symptom-item button {
+  flex-shrink: 0;
+  padding: 0.5rem 0.875rem;
   font-size: 0.875rem;
-  margin-bottom: 1.5rem;
+}
+
+/* Alerts */
+.error, .success {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
+  font-size: 0.9375rem;
+}
+
+.error {
+  background: #fef2f2;
+  color: var(--color-error);
+  border-left: 3px solid var(--color-error);
+}
+
+.success {
+  background: #f0fdf4;
+  color: var(--color-success);
+  border-left: 3px solid var(--color-success);
+}
+
+/* Utility */
+.hidden {
+  display: none !important;
 }
 
 .loading {
   text-align: center;
   padding: 2rem;
-  color: var(--muted-color);
+  color: var(--color-text-light);
 }
-
-.error {
-  background: #ffebee;
-  color: #c62828;
-  padding: 0.75rem;
-  border-radius: var(--border-radius);
-  margin-bottom: 1rem;
-}
-
-.success {
-  background: #e8f5e9;
-  color: #2e7d32;
-  padding: 0.75rem;
-  border-radius: var(--border-radius);
-  margin-bottom: 1rem;
-}
-
-.hidden {
-  display: none !important;
-}
-
-/* Button Variants */
-button.secondary {
-  background: var(--secondary);
-  margin-left: 0.5rem;
-}
-
-button[role="button"].outline.danger {
-  --primary: #f44336;
-  --primary-hover: #d32f2f;
-}
-
-/* Top Button Group */
-.button-group {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  margin-bottom: 1.5rem;
-}
-
-.button-group button {
-  flex: 0 1 auto;
-  margin: 0;
-}
-
-/* Responsive adjustments */
-@media (min-width: 768px) {
-  .symptom-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 1rem;
-  }
-
-  .symptom-btn {
-    padding: 1.25rem;
-    font-size: 1rem;
-  }
-
-  .modal-content {
-    padding: 2rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .symptom-grid {
+`;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 1.25rem;
   }
@@ -925,71 +1051,76 @@ function formatDate(dateStr) {
 
 function generateIndexHTML() {
   return `<!DOCTYPE html>
-<html lang="es" data-theme="light">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="TrackMe - Aplicación minimalista para seguimiento de síntomas">
-    <title>TrackMe - Seguimiento de Síntomas</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <meta name="description" content="TrackMe - Seguimiento minimalista de síntomas">
+    <title>TrackMe</title>
     <style>${CSS_STYLES}</style>
 </head>
 <body>
-    <!-- Login Form -->
-    <main id="loginForm" class="container">
-        <article>
-            <hgroup>
-                <h1>🔐 Iniciar Sesión</h1>
-                <p class="subtitle">Ingresa tus credenciales para continuar</p>
-            </hgroup>
-            <div id="loginError" class="error hidden"></div>
+    <!-- Login -->
+    <div id="loginForm" class="container">
+        <div class="card" style="max-width: 400px; margin: 3rem auto;">
+            <h1>🩺 TrackMe</h1>
+            <p style="color: var(--color-text-light); margin-bottom: 1.5rem;">Seguimiento simple de síntomas</p>
+            <div id="loginError" class="hidden"></div>
             <form onsubmit="event.preventDefault(); login();">
-                <input type="text" id="username" placeholder="Usuario" autocomplete="username" maxlength="100" required>
-                <input type="password" id="password" placeholder="Contraseña" autocomplete="current-password" maxlength="100" required>
-                <button type="submit">Entrar</button>
+                <div class="form-group">
+                    <label>Usuario</label>
+                    <input type="text" id="username" placeholder="Tu usuario" autocomplete="username" maxlength="100" required>
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="password" placeholder="Tu contraseña" autocomplete="current-password" maxlength="100" required>
+                </div>
+                <button type="submit" style="width: 100%;">Entrar</button>
             </form>
-        </article>
-    </main>
+        </div>
+    </div>
 
     <!-- Main App -->
-    <main id="mainApp" class="container hidden">
-        <hgroup>
-            <h1>📊 TrackMe</h1>
-            <p class="subtitle">Registra tus síntomas de forma simple y rápida</p>
-        </hgroup>
+    <div id="mainApp" class="container hidden">
+        <div style="margin: 1rem 0 1.5rem;">
+            <h1>🩺 TrackMe</h1>
+            <p style="color: var(--color-text-light);">Registra tus síntomas</p>
+        </div>
 
-        <div class="button-group">
-            <button class="outline secondary" onclick="goToAdmin()">⚙️ Panel Admin</button>
-            <button class="outline contrast" onclick="logout()">Cerrar Sesión</button>
+        <div class="top-nav">
+            <button class="outline" onclick="goToAdmin()">⚙️ Admin</button>
+            <button class="outline secondary" onclick="logout()">Salir</button>
         </div>
 
         <div id="message" class="hidden"></div>
 
-        <section>
-            <h2>📝 Registrar Evento</h2>
+        <div>
+            <h2>Registrar Síntoma</h2>
             <div id="symptomButtons" class="symptom-grid">
-                <div class="loading">Cargando síntomas...</div>
+                <div class="loading">Cargando...</div>
             </div>
-        </section>
+        </div>
 
-        <section>
-            <h2>📅 Historial (Últimos 14 días)</h2>
+        <div>
+            <h2>Historial (14 días)</h2>
             <div id="history">
-                <div class="loading">Cargando historial...</div>
+                <div class="loading">Cargando...</div>
             </div>
-        </section>
-    </main>
+        </div>
+    </div>
 
-    <!-- Modal for notes -->
+    <!-- Modal -->
     <div id="modal" class="modal" onclick="if(event.target===this) closeModal()">
-        <article class="modal-content">
+        <div class="modal-content">
             <h3 id="modalTitle">Agregar Notas</h3>
-            <textarea id="notesInput" placeholder="Escribe aquí cualquier detalle adicional (opcional)..." maxlength="1000"></textarea>
-            <div class="grid">
+            <div class="form-group">
+                <textarea id="notesInput" placeholder="Detalles opcionales..." maxlength="1000" rows="4"></textarea>
+            </div>
+            <div class="modal-actions">
                 <button onclick="saveSymptom()">Guardar</button>
                 <button class="secondary" onclick="closeModal()">Cancelar</button>
             </div>
-        </article>
+        </div>
     </div>
 
     <script>${JS_MAIN_APP}</script>
@@ -999,47 +1130,45 @@ function generateIndexHTML() {
 
 function generateAdminHTML() {
   return `<!DOCTYPE html>
-<html lang="es" data-theme="light">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Panel de administración - TrackMe">
-    <title>Admin Panel - TrackMe</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <title>Admin - TrackMe</title>
     <style>${CSS_STYLES}</style>
 </head>
 <body>
-    <main class="container">
-        <hgroup>
-            <h1>⚙️ Panel de Administración</h1>
-            <p class="subtitle">Gestiona los tipos de síntomas a trackear</p>
-        </hgroup>
+    <div class="container">
+        <div style="margin: 1rem 0 1.5rem;">
+            <h1>⚙️ Panel Admin</h1>
+            <p style="color: var(--color-text-light);">Gestiona los síntomas</p>
+        </div>
 
-        <div class="button-group">
-            <button class="outline" onclick="goToHome()">← Volver al Inicio</button>
-            <button class="outline contrast" onclick="logout()">Cerrar Sesión</button>
+        <div class="top-nav">
+            <button class="outline" onclick="goToHome()">← Volver</button>
+            <button class="outline secondary" onclick="logout()">Salir</button>
         </div>
 
         <div id="message" class="hidden"></div>
 
-        <section>
-            <h2>➕ Agregar Nuevo Síntoma</h2>
+        <div class="card">
+            <h2>Agregar Síntoma</h2>
             <form id="addForm" onsubmit="addSymptom(event)">
-                <label for="symptomName">
-                    Nombre del síntoma
+                <div class="form-group">
                     <input type="text" id="symptomName" placeholder="Ej: Dolor de cabeza" required maxlength="100">
-                </label>
-                <button type="submit">Agregar Síntoma</button>
+                </div>
+                <button type="submit">Agregar</button>
             </form>
-        </section>
+        </div>
 
-        <section>
-            <h2>📋 Síntomas Existentes</h2>
+        <div>
+            <h2>Lista de Síntomas</h2>
             <div id="symptomList" class="symptom-list">
-                <div class="loading">Cargando síntomas...</div>
+                <div class="loading">Cargando...</div>
             </div>
-        </section>
-    </main>
+        </div>
+    </div>
 
     <script>${JS_ADMIN_PANEL}</script>
 </body>
