@@ -281,95 +281,35 @@ function htmlResponse(html, headers = {}) {
 
 const CSS_STYLES = `
 /* ============================================================================
-   RESPONSIVE DESIGN - MOBILE FIRST
-   Breakpoints: Mobile (base), Tablet (768px+), Desktop (1024px+)
+   CUSTOM STYLES for TrackMe with Pico CSS
+   Pico CSS provides base responsive styles, we only add app-specific styles
    ============================================================================ */
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-/* ============================================================================
-   BASE STYLES - MOBILE (< 768px)
-   ============================================================================ */
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: #f5f5f5;
-  padding: 8px;
-  max-width: 100%;
-  margin: 0 auto;
-  line-height: 1.4;
-}
-
-.container {
-  background: white;
-  padding: 12px;
-  border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-}
-
-h1 {
-  color: #333;
-  margin-bottom: 6px;
-  font-size: 20px;
-}
-
-h2 {
-  color: #666;
-  margin: 12px 0 8px;
-  font-size: 15px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 4px;
-}
-
-.subtitle {
-  color: #888;
-  font-size: 11px;
-  margin-bottom: 8px;
-}
-
-/* Login Form */
-#loginForm {
-  max-width: 100%;
-  margin: 20px auto;
-}
-
-#loginForm input {
-  width: 100%;
-  padding: 10px;
-  margin: 6px 0;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 14px;
-}
-
-/* Symptom Buttons */
+/* Symptom Grid - Responsive button grid */
 .symptom-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 8px;
-  margin-bottom: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
 }
 
 .symptom-btn {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
-  padding: 10px 8px;
-  border-radius: 6px;
-  font-size: 13px;
+  padding: 0.875rem;
+  border-radius: var(--border-radius);
+  font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  text-align: center;
 }
 
 .symptom-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
 }
 
 .symptom-btn:active {
@@ -387,7 +327,8 @@ h2 {
   background: rgba(0,0,0,0.5);
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 999;
+  padding: 1rem;
 }
 
 .modal.show {
@@ -395,546 +336,175 @@ h2 {
 }
 
 .modal-content {
-  background: white;
-  padding: 16px;
-  border-radius: 8px;
-  max-width: 90%;
-  width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
-.modal h3 {
-  margin-bottom: 10px;
-  color: #333;
-  font-size: 16px;
-}
-
-.modal textarea {
+  background: var(--background-color);
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  max-width: 500px;
   width: 100%;
-  min-height: 80px;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 13px;
-  font-family: inherit;
-  resize: vertical;
-  margin-bottom: 10px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
 }
 
-/* Buttons */
-.btn {
-  padding: 8px 12px;
-  border: none;
-  border-radius: 6px;
-  font-size: 12px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-.btn:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
-
-.btn:active {
-  transform: translateY(0);
-}
-
-.btn-primary {
-  background: #667eea;
-  color: white;
-}
-
-.btn-secondary {
-  background: #ddd;
-  color: #333;
-  margin-left: 10px;
-}
-
-.btn-logout {
-  background: #f44336;
-  color: white;
-  float: right;
-}
-
-.btn-admin {
-  background: #ff9800;
-  color: white;
-  margin-left: 10px;
-}
-
-.btn-back {
-  background: #4caf50;
-  color: white;
-}
-
-.btn-danger {
-  background: #f44336;
-  color: white;
-}
-
-/* History */
+/* History Items */
 .history-item {
-  padding: 8px;
-  border: 1px solid #eee;
-  border-radius: 6px;
-  margin-bottom: 6px;
-  background: #fafafa;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  background: var(--card-background-color);
+  border: 1px solid var(--muted-border-color);
+  border-radius: var(--border-radius);
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .history-item:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 
 .history-date {
-  color: #667eea;
+  color: var(--primary);
   font-weight: 600;
-  margin-bottom: 2px;
-  font-size: 11px;
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
 }
 
 .history-type {
-  font-size: 13px;
+  font-size: 1rem;
   font-weight: 600;
-  color: #333;
+  margin-bottom: 0.25rem;
 }
 
 .history-notes {
-  color: #666;
-  font-size: 11px;
-  margin-top: 4px;
+  color: var(--muted-color);
+  font-size: 0.875rem;
   font-style: italic;
-  word-wrap: break-word;
+  margin-top: 0.5rem;
 }
 
 .history-time {
-  color: #999;
-  font-size: 10px;
-  margin-top: 2px;
+  color: var(--muted-color);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
 }
 
-/* Admin Panel */
-.form-group {
-  margin-bottom: 12px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 4px;
-  color: #333;
-  font-weight: 600;
-  font-size: 13px;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 14px;
-  transition: border-color 0.2s;
-}
-
-.form-group input:focus {
-  outline: none;
-  border-color: #667eea;
-}
-
+/* Symptom Admin List */
 .symptom-list {
   display: grid;
-  gap: 8px;
-  margin-top: 12px;
+  gap: 0.75rem;
+  margin-top: 1rem;
 }
 
 .symptom-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 12px;
-  background: #f9f9f9;
-  border: 1px solid #eee;
-  border-radius: 6px;
+  padding: 1rem;
+  background: var(--card-background-color);
+  border: 1px solid var(--muted-border-color);
+  border-radius: var(--border-radius);
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .symptom-item:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .symptom-name {
-  font-size: 14px;
   font-weight: 600;
-  color: #333;
-  word-wrap: break-word;
-  max-width: 70%;
+  flex: 1;
+  margin-right: 1rem;
 }
 
 .symptom-date {
-  font-size: 10px;
-  color: #999;
-  margin-top: 2px;
-}
-
-.nav-buttons {
-  margin-bottom: 12px;
+  font-size: 0.75rem;
+  color: var(--muted-color);
+  margin-top: 0.25rem;
 }
 
 /* Utility Classes */
+.subtitle {
+  color: var(--muted-color);
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+}
+
 .loading {
   text-align: center;
-  padding: 12px;
-  color: #999;
-  font-size: 12px;
+  padding: 2rem;
+  color: var(--muted-color);
 }
 
 .error {
   background: #ffebee;
   color: #c62828;
-  padding: 8px;
-  border-radius: 6px;
-  margin-bottom: 8px;
-  word-wrap: break-word;
-  font-size: 12px;
+  padding: 0.75rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1rem;
 }
 
 .success {
   background: #e8f5e9;
   color: #2e7d32;
-  padding: 8px;
-  border-radius: 6px;
-  margin-bottom: 8px;
-  font-size: 12px;
+  padding: 0.75rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1rem;
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
-/* ============================================================================
-   TABLET STYLES (768px - 1024px)
-   ============================================================================ */
+/* Button Variants */
+button.secondary {
+  background: var(--secondary);
+  margin-left: 0.5rem;
+}
 
+button[role="button"].outline.danger {
+  --primary: #f44336;
+  --primary-hover: #d32f2f;
+}
+
+/* Top Button Group */
+.button-group {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.button-group button {
+  flex: 0 1 auto;
+  margin: 0;
+}
+
+/* Responsive adjustments */
 @media (min-width: 768px) {
-  body {
-    padding: 16px;
-    line-height: 1.5;
-  }
-
-  .container {
-    padding: 20px;
-    max-width: 750px;
-    margin: 0 auto;
-  }
-
-  h1 {
-    font-size: 26px;
-    margin-bottom: 8px;
-  }
-
-  h2 {
-    font-size: 18px;
-    margin: 20px 0 12px;
-    padding-bottom: 6px;
-  }
-
-  .subtitle {
-    font-size: 13px;
-    margin-bottom: 16px;
-  }
-
-  /* Login Form */
-  #loginForm {
-    max-width: 450px;
-    margin: 60px auto;
-    padding: 30px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  }
-
-  #loginForm input {
-    padding: 12px;
-    margin: 8px 0;
-    font-size: 15px;
-  }
-
-  /* Symptom Grid - 3 columns */
   .symptom-grid {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 12px;
-    margin-bottom: 20px;
+    gap: 1rem;
   }
 
   .symptom-btn {
-    padding: 16px 12px;
-    font-size: 15px;
+    padding: 1.25rem;
+    font-size: 1rem;
   }
 
-  /* Modal */
   .modal-content {
-    padding: 24px;
-    max-width: 500px;
-    width: 500px;
-  }
-
-  .modal h3 {
-    font-size: 18px;
-    margin-bottom: 12px;
-  }
-
-  .modal textarea {
-    min-height: 100px;
-    padding: 12px;
-    font-size: 14px;
-    margin-bottom: 12px;
-  }
-
-  /* Buttons */
-  .btn {
-    padding: 10px 16px;
-    font-size: 14px;
-  }
-
-  /* History */
-  .history-item {
-    padding: 12px;
-    margin-bottom: 8px;
-  }
-
-  .history-date {
-    font-size: 12px;
-    margin-bottom: 4px;
-  }
-
-  .history-type {
-    font-size: 15px;
-  }
-
-  .history-notes {
-    font-size: 13px;
-    margin-top: 6px;
-  }
-
-  .history-time {
-    font-size: 11px;
-    margin-top: 4px;
-  }
-
-  /* Admin Panel */
-  .form-group {
-    margin-bottom: 16px;
-  }
-
-  .form-group label {
-    font-size: 14px;
-    margin-bottom: 6px;
-  }
-
-  .form-group input {
-    padding: 12px;
-    font-size: 15px;
-  }
-
-  .symptom-list {
-    gap: 10px;
-    margin-top: 16px;
-  }
-
-  .symptom-item {
-    padding: 14px 16px;
-  }
-
-  .symptom-name {
-    font-size: 16px;
-  }
-
-  .symptom-date {
-    font-size: 11px;
-  }
-
-  .nav-buttons {
-    margin-bottom: 16px;
-  }
-
-  /* Utility */
-  .loading {
-    padding: 16px;
-    font-size: 13px;
-  }
-
-  .error,
-  .success {
-    padding: 10px;
-    font-size: 13px;
-    margin-bottom: 12px;
+    padding: 2rem;
   }
 }
 
-/* ============================================================================
-   DESKTOP STYLES (1024px+)
-   ============================================================================ */
-
 @media (min-width: 1024px) {
-  body {
-    padding: 24px;
-    line-height: 1.6;
-  }
-
-  .container {
-    padding: 30px;
-    max-width: 1000px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-  }
-
-  h1 {
-    font-size: 32px;
-    margin-bottom: 10px;
-  }
-
-  h2 {
-    font-size: 22px;
-    margin: 30px 0 15px;
-    padding-bottom: 8px;
-    border-bottom: 2px solid #eee;
-  }
-
-  .subtitle {
-    font-size: 15px;
-    margin-bottom: 24px;
-  }
-
-  /* Login Form */
-  #loginForm {
-    max-width: 500px;
-    margin: 100px auto;
-    padding: 40px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  }
-
-  #loginForm h1 {
-    font-size: 28px;
-  }
-
-  #loginForm input {
-    padding: 14px;
-    margin: 10px 0;
-    font-size: 16px;
-  }
-
-  /* Symptom Grid - 4-5 columns */
   .symptom-grid {
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 15px;
-    margin-bottom: 30px;
+    gap: 1.25rem;
   }
 
   .symptom-btn {
-    padding: 20px 16px;
-    font-size: 16px;
-    border-radius: 8px;
-  }
-
-  /* Modal */
-  .modal-content {
-    padding: 30px;
-    max-width: 600px;
-    width: 600px;
-    border-radius: 12px;
-  }
-
-  .modal h3 {
-    font-size: 20px;
-    margin-bottom: 15px;
-  }
-
-  .modal textarea {
-    min-height: 120px;
-    padding: 14px;
-    font-size: 15px;
-    margin-bottom: 15px;
-  }
-
-  /* Buttons */
-  .btn {
-    padding: 12px 20px;
-    font-size: 15px;
-  }
-
-  /* History - 2 column layout */
-  .history-item {
-    padding: 15px;
-    margin-bottom: 10px;
-  }
-
-  .history-date {
-    font-size: 13px;
-    margin-bottom: 5px;
-  }
-
-  .history-type {
-    font-size: 16px;
-  }
-
-  .history-notes {
-    font-size: 14px;
-    margin-top: 8px;
-  }
-
-  .history-time {
-    font-size: 12px;
-    margin-top: 5px;
-  }
-
-  /* Admin Panel */
-  .form-group {
-    margin-bottom: 20px;
-  }
-
-  .form-group label {
-    font-size: 15px;
-    margin-bottom: 8px;
-  }
-
-  .form-group input {
-    padding: 14px;
-    font-size: 16px;
-  }
-
-  .symptom-list {
-    gap: 12px;
-    margin-top: 20px;
-  }
-
-  .symptom-item {
-    padding: 16px 20px;
-  }
-
-  .symptom-name {
-    font-size: 18px;
-  }
-
-  .symptom-date {
-    font-size: 12px;
-  }
-
-  .nav-buttons {
-    margin-bottom: 20px;
-  }
-
-  /* Utility */
-  .loading {
-    padding: 20px;
-    font-size: 14px;
-  }
-
-  .error,
-  .success {
-    padding: 12px;
-    font-size: 14px;
-    margin-bottom: 15px;
+    padding: 1.5rem;
+    font-size: 1.125rem;
   }
 }
 `;
@@ -1246,7 +816,7 @@ async function loadSymptoms() {
           '<div class="symptom-name">' + escapeHtml(type.name) + '</div>' +
           '<div class="symptom-date">Creado: ' + formatDate(type.created_at) + '</div>' +
         '</div>' +
-        '<button class="btn btn-danger" onclick="deleteSymptom(' + type.id + ', \\'' + escapeHtml(type.name).replace(/'/g, "\\\\'") + '\\')">🗑️ Eliminar</button>' +
+        '<button class="outline contrast" onclick="deleteSymptom(' + type.id + ', \\'' + escapeHtml(type.name).replace(/'/g, "\\\\'") + '\\')">🗑️ Eliminar</button>' +
       '</div>'
     ).join('');
   } catch (error) {
@@ -1355,54 +925,71 @@ function formatDate(dateStr) {
 
 function generateIndexHTML() {
   return `<!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="TrackMe - Aplicación minimalista para seguimiento de síntomas">
     <title>TrackMe - Seguimiento de Síntomas</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <style>${CSS_STYLES}</style>
 </head>
 <body>
     <!-- Login Form -->
-    <div id="loginForm" class="container">
-        <h1>🔐 Iniciar Sesión</h1>
-        <p class="subtitle">Ingresa tus credenciales para continuar</p>
-        <div id="loginError" class="error hidden"></div>
-        <input type="text" id="username" placeholder="Usuario" autocomplete="username" maxlength="100">
-        <input type="password" id="password" placeholder="Contraseña" autocomplete="current-password" maxlength="100">
-        <button class="btn btn-primary" onclick="login()" style="width: 100%; margin-top: 10px;">Entrar</button>
-    </div>
+    <main id="loginForm" class="container">
+        <article>
+            <hgroup>
+                <h1>🔐 Iniciar Sesión</h1>
+                <p class="subtitle">Ingresa tus credenciales para continuar</p>
+            </hgroup>
+            <div id="loginError" class="error hidden"></div>
+            <form onsubmit="event.preventDefault(); login();">
+                <input type="text" id="username" placeholder="Usuario" autocomplete="username" maxlength="100" required>
+                <input type="password" id="password" placeholder="Contraseña" autocomplete="current-password" maxlength="100" required>
+                <button type="submit">Entrar</button>
+            </form>
+        </article>
+    </main>
 
     <!-- Main App -->
-    <div id="mainApp" class="container hidden">
-        <h1>📊 TrackMe</h1>
-        <p class="subtitle">Registra tus síntomas de forma simple y rápida</p>
-        <button class="btn btn-logout" onclick="logout()">Cerrar Sesión</button>
-        <button class="btn btn-admin" onclick="goToAdmin()">Panel Admin</button>
-        <div style="clear: both; margin-bottom: 20px;"></div>
+    <main id="mainApp" class="container hidden">
+        <hgroup>
+            <h1>📊 TrackMe</h1>
+            <p class="subtitle">Registra tus síntomas de forma simple y rápida</p>
+        </hgroup>
+
+        <div class="button-group">
+            <button class="outline secondary" onclick="goToAdmin()">⚙️ Panel Admin</button>
+            <button class="outline contrast" onclick="logout()">Cerrar Sesión</button>
+        </div>
 
         <div id="message" class="hidden"></div>
 
-        <h2>📝 Registrar Evento</h2>
-        <div id="symptomButtons" class="symptom-grid">
-            <div class="loading">Cargando síntomas...</div>
-        </div>
+        <section>
+            <h2>📝 Registrar Evento</h2>
+            <div id="symptomButtons" class="symptom-grid">
+                <div class="loading">Cargando síntomas...</div>
+            </div>
+        </section>
 
-        <h2>📅 Historial (Últimos 14 días)</h2>
-        <div id="history">
-            <div class="loading">Cargando historial...</div>
-        </div>
-    </div>
+        <section>
+            <h2>📅 Historial (Últimos 14 días)</h2>
+            <div id="history">
+                <div class="loading">Cargando historial...</div>
+            </div>
+        </section>
+    </main>
 
     <!-- Modal for notes -->
     <div id="modal" class="modal" onclick="if(event.target===this) closeModal()">
-        <div class="modal-content">
+        <article class="modal-content">
             <h3 id="modalTitle">Agregar Notas</h3>
             <textarea id="notesInput" placeholder="Escribe aquí cualquier detalle adicional (opcional)..." maxlength="1000"></textarea>
-            <button class="btn btn-primary" onclick="saveSymptom()">Guardar</button>
-            <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
-        </div>
+            <div class="grid">
+                <button onclick="saveSymptom()">Guardar</button>
+                <button class="secondary" onclick="closeModal()">Cancelar</button>
+            </div>
+        </article>
     </div>
 
     <script>${JS_MAIN_APP}</script>
@@ -1412,41 +999,47 @@ function generateIndexHTML() {
 
 function generateAdminHTML() {
   return `<!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Panel de administración - TrackMe">
     <title>Admin Panel - TrackMe</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <style>${CSS_STYLES}</style>
 </head>
 <body>
-    <div class="container">
-        <h1>⚙️ Panel de Administración</h1>
-        <p class="subtitle">Gestiona los tipos de síntomas a trackear</p>
-        <button class="btn btn-logout" onclick="logout()">Cerrar Sesión</button>
-        <div style="clear: both;"></div>
+    <main class="container">
+        <hgroup>
+            <h1>⚙️ Panel de Administración</h1>
+            <p class="subtitle">Gestiona los tipos de síntomas a trackear</p>
+        </hgroup>
 
-        <div class="nav-buttons">
-            <button class="btn btn-back" onclick="goToHome()">← Volver al Inicio</button>
+        <div class="button-group">
+            <button class="outline" onclick="goToHome()">← Volver al Inicio</button>
+            <button class="outline contrast" onclick="logout()">Cerrar Sesión</button>
         </div>
 
         <div id="message" class="hidden"></div>
 
-        <h2>➕ Agregar Nuevo Síntoma</h2>
-        <form id="addForm" onsubmit="addSymptom(event)">
-            <div class="form-group">
-                <label for="symptomName">Nombre del síntoma</label>
-                <input type="text" id="symptomName" placeholder="Ej: Dolor de cabeza" required maxlength="100">
-            </div>
-            <button type="submit" class="btn btn-primary">Agregar Síntoma</button>
-        </form>
+        <section>
+            <h2>➕ Agregar Nuevo Síntoma</h2>
+            <form id="addForm" onsubmit="addSymptom(event)">
+                <label for="symptomName">
+                    Nombre del síntoma
+                    <input type="text" id="symptomName" placeholder="Ej: Dolor de cabeza" required maxlength="100">
+                </label>
+                <button type="submit">Agregar Síntoma</button>
+            </form>
+        </section>
 
-        <h2>📋 Síntomas Existentes</h2>
-        <div id="symptomList" class="symptom-list">
-            <div class="loading">Cargando síntomas...</div>
-        </div>
-    </div>
+        <section>
+            <h2>📋 Síntomas Existentes</h2>
+            <div id="symptomList" class="symptom-list">
+                <div class="loading">Cargando síntomas...</div>
+            </div>
+        </section>
+    </main>
 
     <script>${JS_ADMIN_PANEL}</script>
 </body>
