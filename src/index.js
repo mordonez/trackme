@@ -148,67 +148,94 @@ function validateId(id) {
 }
 
 // ============================================================================
+// SECURITY: PASSWORD HASHING
+// ============================================================================
+
+async function hashPassword(password) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function verifyPassword(password, hash) {
+  const hashedPassword = await hashPassword(password);
+  return hashedPassword === hash;
+}
+
+// ============================================================================
 // SECURITY: AUTHENTICATION & TOKEN MANAGEMENT
 // ============================================================================
 
-function generateSecureToken(username, password) {
+function generateSecureToken(userId, username) {
   // Add entropy with timestamp and random component
   const timestamp = Date.now();
   const random = Math.random().toString(36).substring(2, 15);
-  const payload = `${username}:${password}:${timestamp}:${random}`;
+  const payload = `${userId}:${username}:${timestamp}:${random}`;
 
   return btoa(payload);
 }
 
-function validateToken(token, validUser, validPassword) {
+function validateToken(token) {
   try {
     if (!token || typeof token !== 'string') {
-      return false;
+      return null;
     }
 
     // Check token length (prevent excessively long tokens)
     if (token.length > 500) {
-      return false;
+      return null;
     }
 
     const decoded = atob(token);
     const parts = decoded.split(':');
 
     if (parts.length < 3) {
-      return false;
+      return null;
     }
 
-    const [username, password, timestamp] = parts;
-
-    // Check credentials
-    if (username !== validUser || password !== validPassword) {
-      return false;
-    }
+    const [userId, username, timestamp] = parts;
 
     // Check token age
     const tokenAge = Date.now() - parseInt(timestamp, 10);
     const maxAge = CONFIG.TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
 
     if (isNaN(tokenAge) || tokenAge < 0 || tokenAge > maxAge) {
-      return false;
+      return null;
     }
 
-    return true;
+    return { userId: parseInt(userId, 10), username };
   } catch (error) {
     console.error('Token validation error:', error);
-    return false;
+    return null;
   }
 }
 
-function checkAuth(request, env) {
+async function checkAuth(request, env) {
   const authHeader = request.headers.get('Authorization');
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return false;
+    return null;
   }
 
   const token = authHeader.substring(7);
-  return validateToken(token, env.USER, env.PASSWORD);
+  const tokenData = validateToken(token);
+
+  if (!tokenData) {
+    return null;
+  }
+
+  // Verify user still exists in database
+  const user = await env.DB.prepare(
+    'SELECT id, username FROM users WHERE id = ?'
+  ).bind(tokenData.userId).first();
+
+  if (!user) {
+    return null;
+  }
+
+  return tokenData;
 }
 
 // ============================================================================
@@ -217,6 +244,17 @@ function checkAuth(request, env) {
 
 async function initDatabase(db) {
   try {
+    // Create users table
+    await db.prepare(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL UNIQUE,
+        password_hash TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        last_login DATETIME
+      )
+    `).run();
+
     await db.prepare(`
       CREATE TABLE IF NOT EXISTS symptom_types (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -228,15 +266,27 @@ async function initDatabase(db) {
     await db.prepare(`
       CREATE TABLE IF NOT EXISTS symptom_logs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
         type_id INTEGER NOT NULL,
         notes TEXT,
         date DATE NOT NULL,
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
         FOREIGN KEY (type_id) REFERENCES symptom_types(id) ON DELETE CASCADE
       )
     `).run();
 
     // Create indices for better performance
+    await db.prepare(`
+      CREATE INDEX IF NOT EXISTS idx_users_username
+      ON users(username)
+    `).run();
+
+    await db.prepare(`
+      CREATE INDEX IF NOT EXISTS idx_symptom_logs_user
+      ON symptom_logs(user_id)
+    `).run();
+
     await db.prepare(`
       CREATE INDEX IF NOT EXISTS idx_symptom_logs_date
       ON symptom_logs(date DESC)
@@ -284,22 +334,25 @@ const CSS_STYLES = `
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: #f5f5f5;
-  padding: 20px;
-  max-width: 800px;
-  margin: 0 auto;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
   line-height: 1.6;
+  padding: 0;
+  margin: 0;
 }
 
 .container {
   background: white;
-  padding: 30px;
+  padding: 20px;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 h1 {
@@ -322,49 +375,240 @@ h2 {
   margin-bottom: 30px;
 }
 
-/* Login Form */
-#loginForm {
-  max-width: 400px;
-  margin: 100px auto;
+/* Auth Screen - Mobile Optimized */
+#authScreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 9999;
 }
 
-#loginForm input {
+.auth-container {
+  background: white;
+  border-radius: 24px;
+  padding: 32px 24px;
   width: 100%;
-  padding: 12px;
-  margin: 8px 0;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 16px;
+  max-width: 400px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  animation: slideUp 0.3s ease-out;
 }
 
-/* Symptom Buttons */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.auth-logo {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.auth-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+}
+
+.auth-subtitle {
+  font-size: 15px;
+  color: #666;
+  font-weight: 400;
+}
+
+.auth-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  background: #f5f5f5;
+  border-radius: 12px;
+  padding: 4px;
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #666;
+}
+
+.auth-tab.active {
+  background: white;
+  color: #667eea;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-field {
+  position: relative;
+}
+
+.form-field input {
+  width: 100%;
+  padding: 16px;
+  border: 2px solid #e8e8e8;
+  border-radius: 12px;
+  font-size: 16px;
+  transition: all 0.2s;
+  background: #fafafa;
+}
+
+.form-field input:focus {
+  outline: none;
+  border-color: #667eea;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+.form-field.error input {
+  border-color: #ff4444;
+}
+
+.field-error {
+  color: #ff4444;
+  font-size: 13px;
+  margin-top: 6px;
+  display: none;
+  animation: shake 0.3s;
+}
+
+.form-field.error .field-error {
+  display: block;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.auth-button {
+  width: 100%;
+  padding: 18px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  margin-top: 8px;
+}
+
+.auth-button:active {
+  transform: scale(0.98);
+}
+
+.auth-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-message {
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 16px;
+  display: none;
+  animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.auth-message.error {
+  background: #ffebee;
+  color: #c62828;
+  display: block;
+}
+
+.auth-message.success {
+  background: #e8f5e9;
+  color: #2e7d32;
+  display: block;
+}
+
+/* Main App Container */
+#mainApp {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+#mainApp .container {
+  background: white;
+  margin-bottom: 20px;
+}
+
+/* Symptom Buttons - Mobile Optimized */
 .symptom-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
   margin-bottom: 30px;
+}
+
+@media (max-width: 480px) {
+  .symptom-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .symptom-btn {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
-  padding: 20px;
-  border-radius: 10px;
-  font-size: 18px;
+  padding: 20px 16px;
+  border-radius: 16px;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-.symptom-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 .symptom-btn:active {
-  transform: translateY(0);
+  transform: scale(0.95);
 }
 
 /* Modal */
@@ -586,6 +830,7 @@ const JS_MAIN_APP = `
 const API_BASE = '';
 let token = localStorage.getItem('token');
 let currentSymptomId = null;
+let currentMode = 'login';
 
 // Security: Escape HTML to prevent XSS
 function escapeHtml(text) {
@@ -597,30 +842,102 @@ function escapeHtml(text) {
 // Check auth on load
 window.onload = () => {
   if (token) {
-    document.getElementById('loginForm').classList.add('hidden');
-    document.getElementById('mainApp').classList.remove('hidden');
-    loadSymptoms();
-    loadHistory();
+    showMainApp();
   }
 };
 
-async function login() {
-  const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value;
+function showMainApp() {
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('mainApp').classList.remove('hidden');
+  loadSymptoms();
+  loadHistory();
+}
 
-  // Client-side validation
-  if (!username || !password) {
-    showError('loginError', 'Por favor ingresa usuario y contraseña');
+function switchAuthMode(mode) {
+  currentMode = mode;
+  const loginTab = document.getElementById('loginTab');
+  const registerTab = document.getElementById('registerTab');
+  const authTitle = document.getElementById('authTitle');
+  const authSubtitle = document.getElementById('authSubtitle');
+  const authButton = document.getElementById('authButton');
+
+  if (mode === 'login') {
+    loginTab.classList.add('active');
+    registerTab.classList.remove('active');
+    authTitle.textContent = 'Bienvenido';
+    authSubtitle.textContent = 'Inicia sesión para continuar';
+    authButton.textContent = 'Iniciar Sesión';
+  } else {
+    registerTab.classList.add('active');
+    loginTab.classList.remove('active');
+    authTitle.textContent = 'Crear Cuenta';
+    authSubtitle.textContent = 'Regístrate en segundos';
+    authButton.textContent = 'Registrarse';
+  }
+
+  clearAuthErrors();
+}
+
+function clearAuthErrors() {
+  document.getElementById('authMessage').className = 'auth-message';
+  document.querySelectorAll('.form-field').forEach(field => {
+    field.classList.remove('error');
+  });
+}
+
+function validateField(fieldId, value) {
+  const field = document.getElementById(fieldId).parentElement;
+  const errorEl = field.querySelector('.field-error');
+
+  if (!value || value.trim() === '') {
+    field.classList.add('error');
+    errorEl.textContent = 'Este campo es requerido';
+    return false;
+  }
+
+  if (fieldId === 'authUsername' && value.length < 3) {
+    field.classList.add('error');
+    errorEl.textContent = 'Mínimo 3 caracteres';
+    return false;
+  }
+
+  if (fieldId === 'authPassword' && value.length < 4) {
+    field.classList.add('error');
+    errorEl.textContent = 'Mínimo 4 caracteres';
+    return false;
+  }
+
+  if (value.length > 100) {
+    field.classList.add('error');
+    errorEl.textContent = 'Máximo 100 caracteres';
+    return false;
+  }
+
+  field.classList.remove('error');
+  return true;
+}
+
+async function handleAuth(event) {
+  event.preventDefault();
+
+  const username = document.getElementById('authUsername').value.trim();
+  const password = document.getElementById('authPassword').value;
+
+  // Validate
+  const usernameValid = validateField('authUsername', username);
+  const passwordValid = validateField('authPassword', password);
+
+  if (!usernameValid || !passwordValid) {
     return;
   }
 
-  if (username.length > 100 || password.length > 100) {
-    showError('loginError', 'Credenciales demasiado largas');
-    return;
-  }
+  const button = document.getElementById('authButton');
+  button.disabled = true;
+  button.textContent = currentMode === 'login' ? 'Iniciando...' : 'Registrando...';
 
   try {
-    const response = await fetch(API_BASE + '/api/login', {
+    const endpoint = currentMode === 'login' ? '/api/login' : '/api/register';
+    const response = await fetch(API_BASE + endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
@@ -631,27 +948,35 @@ async function login() {
     if (response.ok) {
       token = data.token;
       localStorage.setItem('token', token);
-      document.getElementById('loginForm').classList.add('hidden');
-      document.getElementById('mainApp').classList.remove('hidden');
-      document.getElementById('loginError').classList.add('hidden');
-      loadSymptoms();
-      loadHistory();
+      showAuthMessage('¡Éxito! Accediendo...', 'success');
+      setTimeout(() => showMainApp(), 500);
     } else {
-      showError('loginError', escapeHtml(data.error || 'Credenciales inválidas'));
+      showAuthMessage(escapeHtml(data.error || 'Error'), 'error');
+      button.disabled = false;
+      button.textContent = currentMode === 'login' ? 'Iniciar Sesión' : 'Registrarse';
     }
   } catch (error) {
-    console.error('Login error:', error);
-    showError('loginError', 'Error de conexión');
+    console.error('Auth error:', error);
+    showAuthMessage('Error de conexión', 'error');
+    button.disabled = false;
+    button.textContent = currentMode === 'login' ? 'Iniciar Sesión' : 'Registrarse';
   }
+}
+
+function showAuthMessage(text, type) {
+  const el = document.getElementById('authMessage');
+  el.textContent = text;
+  el.className = 'auth-message ' + type;
 }
 
 function logout() {
   localStorage.removeItem('token');
   token = null;
   document.getElementById('mainApp').classList.add('hidden');
-  document.getElementById('loginForm').classList.remove('hidden');
-  document.getElementById('username').value = '';
-  document.getElementById('password').value = '';
+  document.getElementById('authScreen').classList.remove('hidden');
+  document.getElementById('authUsername').value = '';
+  document.getElementById('authPassword').value = '';
+  switchAuthMode('login');
 }
 
 function goToAdmin() {
@@ -997,40 +1322,81 @@ function generateIndexHTML() {
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="TrackMe - Aplicación minimalista para seguimiento de síntomas">
-    <title>TrackMe - Seguimiento de Síntomas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="TrackMe - Registro rápido de síntomas en móvil">
+    <meta name="theme-color" content="#667eea">
+    <title>TrackMe - Registro Rápido</title>
     <style>${CSS_STYLES}</style>
 </head>
 <body>
-    <!-- Login Form -->
-    <div id="loginForm" class="container">
-        <h1>🔐 Iniciar Sesión</h1>
-        <p class="subtitle">Ingresa tus credenciales para continuar</p>
-        <div id="loginError" class="error hidden"></div>
-        <input type="text" id="username" placeholder="Usuario" autocomplete="username" maxlength="100">
-        <input type="password" id="password" placeholder="Contraseña" autocomplete="current-password" maxlength="100">
-        <button class="btn btn-primary" onclick="login()" style="width: 100%; margin-top: 10px;">Entrar</button>
+    <!-- Auth Screen -->
+    <div id="authScreen">
+        <div class="auth-container">
+            <div class="auth-header">
+                <div class="auth-logo">📊</div>
+                <h1 class="auth-title" id="authTitle">Bienvenido</h1>
+                <p class="auth-subtitle" id="authSubtitle">Inicia sesión para continuar</p>
+            </div>
+
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="loginTab" onclick="switchAuthMode('login')">Entrar</button>
+                <button class="auth-tab" id="registerTab" onclick="switchAuthMode('register')">Registrarse</button>
+            </div>
+
+            <div id="authMessage" class="auth-message"></div>
+
+            <form class="auth-form" onsubmit="handleAuth(event)">
+                <div class="form-field">
+                    <input
+                        type="text"
+                        id="authUsername"
+                        placeholder="Usuario"
+                        autocomplete="username"
+                        maxlength="100"
+                        oninput="validateField('authUsername', this.value)"
+                        required
+                    >
+                    <div class="field-error"></div>
+                </div>
+
+                <div class="form-field">
+                    <input
+                        type="password"
+                        id="authPassword"
+                        placeholder="Contraseña"
+                        autocomplete="current-password"
+                        maxlength="100"
+                        oninput="validateField('authPassword', this.value)"
+                        required
+                    >
+                    <div class="field-error"></div>
+                </div>
+
+                <button type="submit" class="auth-button" id="authButton">Iniciar Sesión</button>
+            </form>
+        </div>
     </div>
 
     <!-- Main App -->
-    <div id="mainApp" class="container hidden">
-        <h1>📊 TrackMe</h1>
-        <p class="subtitle">Registra tus síntomas de forma simple y rápida</p>
-        <button class="btn btn-logout" onclick="logout()">Cerrar Sesión</button>
-        <button class="btn btn-admin" onclick="goToAdmin()">Panel Admin</button>
-        <div style="clear: both; margin-bottom: 20px;"></div>
+    <div id="mainApp" class="hidden">
+        <div class="container">
+            <h1>📊 TrackMe</h1>
+            <p class="subtitle">Registra tus síntomas de forma simple y rápida</p>
+            <button class="btn btn-logout" onclick="logout()">Cerrar Sesión</button>
+            <button class="btn btn-admin" onclick="goToAdmin()">Panel Admin</button>
+            <div style="clear: both; margin-bottom: 20px;"></div>
 
-        <div id="message" class="hidden"></div>
+            <div id="message" class="hidden"></div>
 
-        <h2>📝 Registrar Evento</h2>
-        <div id="symptomButtons" class="symptom-grid">
-            <div class="loading">Cargando síntomas...</div>
-        </div>
+            <h2>📝 Registrar Evento</h2>
+            <div id="symptomButtons" class="symptom-grid">
+                <div class="loading">Cargando síntomas...</div>
+            </div>
 
-        <h2>📅 Historial (Últimos 14 días)</h2>
-        <div id="history">
-            <div class="loading">Cargando historial...</div>
+            <h2>📅 Historial (Últimos 14 días)</h2>
+            <div id="history">
+                <div class="loading">Cargando historial...</div>
+            </div>
         </div>
     </div>
 
@@ -1096,20 +1462,77 @@ function generateAdminHTML() {
 // API HANDLERS
 // ============================================================================
 
+async function handleRegister(request, env, securityHeaders) {
+  try {
+    const body = await request.json();
+    const { username, password } = validateCredentials(body.username, body.password);
+
+    // Check if username already exists
+    const existing = await env.DB.prepare(
+      'SELECT id FROM users WHERE LOWER(username) = LOWER(?)'
+    ).bind(username).first();
+
+    if (existing) {
+      return jsonResponse({ error: 'El nombre de usuario ya existe' }, securityHeaders, 400);
+    }
+
+    // Hash password
+    const passwordHash = await hashPassword(password);
+
+    // Create user
+    const result = await env.DB.prepare(
+      'INSERT INTO users (username, password_hash, last_login) VALUES (?, ?, ?)'
+    ).bind(username, passwordHash, new Date().toISOString()).run();
+
+    const userId = result.meta.last_row_id;
+
+    // Generate token
+    const token = generateSecureToken(userId, username);
+
+    return jsonResponse({ success: true, token }, securityHeaders);
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      return jsonResponse({ error: error.message }, securityHeaders, 400);
+    }
+    console.error('Register error:', error);
+    return jsonResponse({ error: 'Error en el servidor' }, securityHeaders, 500);
+  }
+}
+
 async function handleLogin(request, env, securityHeaders) {
   try {
     const body = await request.json();
     const { username, password } = validateCredentials(body.username, body.password);
 
-    if (username === env.USER && password === env.PASSWORD) {
-      const token = generateSecureToken(username, password);
-      return jsonResponse({ success: true, token }, securityHeaders);
+    // Find user
+    const user = await env.DB.prepare(
+      'SELECT id, username, password_hash FROM users WHERE username = ?'
+    ).bind(username).first();
+
+    if (!user) {
+      // Add small delay to prevent timing attacks
+      await new Promise(resolve => setTimeout(resolve, 100));
+      return jsonResponse({ error: 'Credenciales inválidas' }, securityHeaders, 401);
     }
 
-    // Add small delay to prevent timing attacks
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Verify password
+    const isValid = await verifyPassword(password, user.password_hash);
 
-    return jsonResponse({ error: 'Credenciales inválidas' }, securityHeaders, 401);
+    if (!isValid) {
+      // Add small delay to prevent timing attacks
+      await new Promise(resolve => setTimeout(resolve, 100));
+      return jsonResponse({ error: 'Credenciales inválidas' }, securityHeaders, 401);
+    }
+
+    // Update last login
+    await env.DB.prepare(
+      'UPDATE users SET last_login = ? WHERE id = ?'
+    ).bind(new Date().toISOString(), user.id).run();
+
+    // Generate token
+    const token = generateSecureToken(user.id, user.username);
+
+    return jsonResponse({ success: true, token }, securityHeaders);
   } catch (error) {
     if (error instanceof ValidationError) {
       return jsonResponse({ error: error.message }, securityHeaders, 400);
@@ -1132,7 +1555,7 @@ async function handleGetSymptomTypes(env, securityHeaders) {
   }
 }
 
-async function handleLogSymptom(request, env, securityHeaders) {
+async function handleLogSymptom(request, env, securityHeaders, userData) {
   try {
     const body = await request.json();
 
@@ -1143,8 +1566,8 @@ async function handleLogSymptom(request, env, securityHeaders) {
 
     // Insert log
     await env.DB.prepare(
-      'INSERT INTO symptom_logs (type_id, notes, date) VALUES (?, ?, ?)'
-    ).bind(type_id, notes, today).run();
+      'INSERT INTO symptom_logs (user_id, type_id, notes, date) VALUES (?, ?, ?, ?)'
+    ).bind(userData.userId, type_id, notes, today).run();
 
     return jsonResponse({ success: true }, securityHeaders);
   } catch (error) {
@@ -1156,7 +1579,7 @@ async function handleLogSymptom(request, env, securityHeaders) {
   }
 }
 
-async function handleGetHistory(env, securityHeaders) {
+async function handleGetHistory(env, securityHeaders, userData) {
   try {
     const daysAgo = new Date();
     daysAgo.setDate(daysAgo.getDate() - CONFIG.HISTORY_DAYS);
@@ -1172,10 +1595,10 @@ async function handleGetHistory(env, securityHeaders) {
         st.name as symptom_name
       FROM symptom_logs sl
       JOIN symptom_types st ON sl.type_id = st.id
-      WHERE sl.date >= ?
+      WHERE sl.user_id = ? AND sl.date >= ?
       ORDER BY sl.timestamp DESC
       LIMIT 100
-    `).bind(dateLimit).all();
+    `).bind(userData.userId, dateLimit).all();
 
     return jsonResponse({ logs: results || [] }, securityHeaders);
   } catch (error) {
@@ -1269,13 +1692,18 @@ export default {
       }
 
       // ===== PUBLIC API ROUTES =====
+      if (path === '/api/register' && request.method === 'POST') {
+        return handleRegister(request, env, securityHeaders);
+      }
+
       if (path === '/api/login' && request.method === 'POST') {
         return handleLogin(request, env, securityHeaders);
       }
 
       // ===== PROTECTED API ROUTES =====
       // All routes below require authentication
-      if (!checkAuth(request, env)) {
+      const userData = await checkAuth(request, env);
+      if (!userData) {
         return jsonResponse({ error: 'No autorizado' }, securityHeaders, 401);
       }
 
@@ -1286,12 +1714,12 @@ export default {
 
       // Log symptom
       if (path === '/api/log-symptom' && request.method === 'POST') {
-        return handleLogSymptom(request, env, securityHeaders);
+        return handleLogSymptom(request, env, securityHeaders, userData);
       }
 
       // Get history
       if (path === '/api/history' && request.method === 'GET') {
-        return handleGetHistory(env, securityHeaders);
+        return handleGetHistory(env, securityHeaders, userData);
       }
 
       // Add symptom (admin)
