@@ -289,73 +289,73 @@ const CSS_STYLES = `
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: #f5f5f5;
-  padding: 20px;
-  max-width: 800px;
+  padding: 8px;
+  max-width: 100%;
   margin: 0 auto;
-  line-height: 1.6;
+  line-height: 1.4;
 }
 
 .container {
   background: white;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
 
 h1 {
   color: #333;
-  margin-bottom: 10px;
-  font-size: 28px;
+  margin-bottom: 6px;
+  font-size: 20px;
 }
 
 h2 {
   color: #666;
-  margin: 30px 0 15px;
-  font-size: 20px;
-  border-bottom: 2px solid #eee;
-  padding-bottom: 8px;
+  margin: 12px 0 8px;
+  font-size: 15px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 4px;
 }
 
 .subtitle {
   color: #888;
-  font-size: 14px;
-  margin-bottom: 30px;
+  font-size: 11px;
+  margin-bottom: 8px;
 }
 
 /* Login Form */
 #loginForm {
-  max-width: 400px;
-  margin: 100px auto;
+  max-width: 100%;
+  margin: 20px auto;
 }
 
 #loginForm input {
   width: 100%;
-  padding: 12px;
-  margin: 8px 0;
+  padding: 10px;
+  margin: 6px 0;
   border: 1px solid #ddd;
   border-radius: 6px;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 /* Symptom Buttons */
 .symptom-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 15px;
-  margin-bottom: 30px;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
 .symptom-btn {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
-  padding: 20px;
-  border-radius: 10px;
-  font-size: 18px;
+  padding: 10px 8px;
+  border-radius: 6px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .symptom-btn:hover {
@@ -387,37 +387,38 @@ h2 {
 
 .modal-content {
   background: white;
-  padding: 30px;
-  border-radius: 12px;
-  max-width: 500px;
+  padding: 16px;
+  border-radius: 8px;
+  max-width: 90%;
   width: 90%;
-  max-height: 90vh;
+  max-height: 80vh;
   overflow-y: auto;
 }
 
 .modal h3 {
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   color: #333;
+  font-size: 16px;
 }
 
 .modal textarea {
   width: 100%;
-  min-height: 120px;
-  padding: 12px;
+  min-height: 80px;
+  padding: 10px;
   border: 1px solid #ddd;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 13px;
   font-family: inherit;
   resize: vertical;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 /* Buttons */
 .btn {
-  padding: 12px 24px;
+  padding: 8px 12px;
   border: none;
   border-radius: 6px;
-  font-size: 16px;
+  font-size: 12px;
   cursor: pointer;
   font-weight: 600;
   transition: opacity 0.2s;
@@ -462,77 +463,79 @@ h2 {
 
 /* History */
 .history-item {
-  padding: 15px;
+  padding: 8px;
   border: 1px solid #eee;
-  border-radius: 8px;
-  margin-bottom: 10px;
+  border-radius: 6px;
+  margin-bottom: 6px;
   background: #fafafa;
 }
 
 .history-date {
   color: #667eea;
   font-weight: 600;
-  margin-bottom: 5px;
+  margin-bottom: 2px;
+  font-size: 11px;
 }
 
 .history-type {
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 600;
   color: #333;
 }
 
 .history-notes {
   color: #666;
-  font-size: 14px;
-  margin-top: 8px;
+  font-size: 11px;
+  margin-top: 4px;
   font-style: italic;
   word-wrap: break-word;
 }
 
 .history-time {
   color: #999;
-  font-size: 12px;
-  margin-top: 5px;
+  font-size: 10px;
+  margin-top: 2px;
 }
 
 /* Admin Panel */
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   color: #333;
   font-weight: 600;
+  font-size: 13px;
 }
 
 .form-group input {
   width: 100%;
-  padding: 12px;
+  padding: 10px;
   border: 1px solid #ddd;
   border-radius: 6px;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .symptom-list {
   display: grid;
-  gap: 15px;
-  margin-top: 20px;
+  gap: 8px;
+  margin-top: 12px;
 }
 
 .symptom-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 20px;
+  padding: 10px 12px;
   background: #f9f9f9;
   border: 1px solid #eee;
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
 .symptom-name {
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 600;
   color: #333;
   word-wrap: break-word;
@@ -540,37 +543,40 @@ h2 {
 }
 
 .symptom-date {
-  font-size: 12px;
+  font-size: 10px;
   color: #999;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .nav-buttons {
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 /* Utility Classes */
 .loading {
   text-align: center;
-  padding: 20px;
+  padding: 12px;
   color: #999;
+  font-size: 12px;
 }
 
 .error {
   background: #ffebee;
   color: #c62828;
-  padding: 12px;
+  padding: 8px;
   border-radius: 6px;
-  margin-bottom: 15px;
+  margin-bottom: 8px;
   word-wrap: break-word;
+  font-size: 12px;
 }
 
 .success {
   background: #e8f5e9;
   color: #2e7d32;
-  padding: 12px;
+  padding: 8px;
   border-radius: 6px;
-  margin-bottom: 15px;
+  margin-bottom: 8px;
+  font-size: 12px;
 }
 
 .hidden {
