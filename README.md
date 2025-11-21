@@ -91,10 +91,16 @@ PASSWORD = "tu-password" # ← Cambia esto
 ## 🏃 Desarrollo Local
 
 ```bash
+# Desarrollo con base de datos local (recomendado)
+npm run dev:local
+
+# O con base de datos remota
 npm run dev
 ```
 
 La aplicación estará disponible en: `http://localhost:8787`
+
+**📖 Para un flujo de trabajo completo con Pull Requests, consulta [DEVELOPMENT.md](./DEVELOPMENT.md)**
 
 ## 🚢 Desplegar a Producción
 

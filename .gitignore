@@ -7,6 +7,8 @@ yarn.lock
 .wrangler/
 .dev.vars
 .mf/
+wrangler.*.toml
+!wrangler.toml
 
 # Environment variables
 .env

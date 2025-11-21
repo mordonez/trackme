@@ -8,8 +8,18 @@ compatibility_date = "2024-01-01"
 USER = "admin"
 PASSWORD = "changeme"
 
-# Base de datos D1
+# Base de datos D1 - Producción
 [[d1_databases]]
 binding = "DB"
 database_name = "trackme-db"
 database_id = "preview-database-id"  # Se generará automáticamente al crear la DB
+
+# Entorno de Staging (opcional)
+[env.staging]
+name = "trackme-staging"
+vars = { USER = "admin", PASSWORD = "changeme-staging" }
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "trackme-db-staging"
+database_id = "staging-database-id"  # Configura después de crear la DB de staging

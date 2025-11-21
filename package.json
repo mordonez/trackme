@@ -6,7 +6,13 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "db:init": "wrangler d1 execute trackme-db --file=./schema.sql"
+    "db:init": "wrangler d1 execute trackme-db --file=./schema.sql",
+    "dev:local": "wrangler dev --local --persist",
+    "db:create": "wrangler d1 create trackme-db",
+    "db:list": "wrangler d1 list",
+    "db:query": "wrangler d1 execute trackme-db --command",
+    "preview:create": "node scripts/create-preview.js",
+    "preview:delete": "node scripts/delete-preview.js"
   },
   "keywords": ["cloudflare", "workers", "d1", "symptom-tracker"],
   "author": "",

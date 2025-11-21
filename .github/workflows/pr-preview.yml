@@ -1,0 +1,168 @@
+name: PR Preview Environment
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    name: Deploy PR Preview
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Set environment variables
+        run: |
+          echo "PR_NUMBER=${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+          echo "DB_NAME=trackme-pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+          echo "WORKER_NAME=trackme-pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+
+      - name: Create or use existing D1 database
+        id: create-db
+        run: |
+          echo "Checking if database ${{ env.DB_NAME }} exists..."
+
+          # Try to list databases and check if our DB exists
+          if npx wrangler d1 list | grep -q "${{ env.DB_NAME }}"; then
+            echo "Database already exists, getting its ID..."
+            DB_ID=$(npx wrangler d1 list | grep "${{ env.DB_NAME }}" | awk '{print $2}')
+            echo "db_id=$DB_ID" >> $GITHUB_OUTPUT
+            echo "Database ID: $DB_ID"
+          else
+            echo "Creating new database..."
+            CREATE_OUTPUT=$(npx wrangler d1 create ${{ env.DB_NAME }} 2>&1)
+            echo "$CREATE_OUTPUT"
+
+            DB_ID=$(echo "$CREATE_OUTPUT" | grep -oP 'database_id = "\K[^"]+' || echo "")
+
+            if [ -z "$DB_ID" ]; then
+              echo "Failed to extract database ID. Full output:"
+              echo "$CREATE_OUTPUT"
+              exit 1
+            fi
+
+            echo "db_id=$DB_ID" >> $GITHUB_OUTPUT
+            echo "Created database with ID: $DB_ID"
+          fi
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Create temporary wrangler.toml for PR
+        run: |
+          cat > wrangler.pr.toml << EOF
+          name = "${{ env.WORKER_NAME }}"
+          main = "src/index.js"
+          compatibility_date = "2024-01-01"
+
+          [vars]
+          USER = "admin"
+          PASSWORD = "preview-${{ github.event.pull_request.number }}"
+
+          [[d1_databases]]
+          binding = "DB"
+          database_name = "${{ env.DB_NAME }}"
+          database_id = "${{ steps.create-db.outputs.db_id }}"
+          EOF
+
+          echo "Generated wrangler.pr.toml:"
+          cat wrangler.pr.toml
+
+      - name: Initialize database schema
+        run: |
+          echo "Initializing database schema..."
+          npx wrangler d1 execute ${{ env.DB_NAME }} --file=./schema.sql || echo "Schema may already exist"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Deploy to Cloudflare Workers
+        id: deploy
+        run: |
+          echo "Deploying worker..."
+          DEPLOY_OUTPUT=$(npx wrangler deploy --config wrangler.pr.toml 2>&1)
+          echo "$DEPLOY_OUTPUT"
+
+          # Extract the URL from deployment output
+          WORKER_URL=$(echo "$DEPLOY_OUTPUT" | grep -oP 'https://[^[:space:]]+workers\.dev[^[:space:]]*' | head -1)
+
+          if [ -z "$WORKER_URL" ]; then
+            echo "Could not extract worker URL. Using default pattern."
+            WORKER_URL="https://${{ env.WORKER_NAME }}.workers.dev"
+          fi
+
+          echo "worker_url=$WORKER_URL" >> $GITHUB_OUTPUT
+          echo "Deployed to: $WORKER_URL"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = ${{ github.event.pull_request.number }};
+            const workerUrl = '${{ steps.deploy.outputs.worker_url }}';
+            const dbName = '${{ env.DB_NAME }}';
+            const dbId = '${{ steps.create-db.outputs.db_id }}';
+
+            const comment = `## 🚀 Preview Environment Ready!
+
+            Your PR has been deployed to a preview environment:
+
+            **🌐 Preview URL:** ${workerUrl}
+
+            **📊 Database Info:**
+            - Name: \`${dbName}\`
+            - ID: \`${dbId}\`
+
+            **🔐 Credentials:**
+            - User: \`admin\`
+            - Password: \`preview-${prNumber}\`
+
+            ---
+
+            The preview environment will be automatically deleted when this PR is closed or merged.
+            `;
+
+            // Check if we already commented
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('Preview Environment Ready')
+            );
+
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: comment
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: comment
+              });
+            }
