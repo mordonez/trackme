@@ -1,6 +1,6 @@
 # Variables de entorno para desarrollo local
 # Copia este archivo a .dev.vars y configura tus valores
-# NUNCA commitees el archivo .dev.vars
+# NUNCA commiteas el archivo .dev.vars
 
 # Credenciales de autenticación
 USER=admin
