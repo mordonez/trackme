@@ -26,7 +26,9 @@ trackme/
 ├── src/
 │   └── index.js          # Worker principal (incluye HTML)
 ├── schema.sql            # Schema de la base de datos
-├── wrangler.toml         # Configuración de Cloudflare Workers
+├── wrangler.toml         # Configuración de Cloudflare Workers (no en git)
+├── wrangler.toml.example # Plantilla de configuración
+├── .dev.vars             # Variables locales (no en git)
 ├── package.json          # Dependencias
 └── README.md            # Este archivo
 ```
@@ -45,7 +47,13 @@ trackme/
 npm install
 ```
 
-### 3. Configurar Wrangler
+### 3. Configurar wrangler.toml
+
+Copia la plantilla de configuración:
+
+```bash
+cp wrangler.toml.example wrangler.toml
+```
 
 Si es tu primera vez usando Wrangler, autentícate:
 
@@ -78,15 +86,28 @@ Esto creará las tablas necesarias y agregará 3 síntomas de ejemplo.
 
 ### 6. Configurar Credenciales de Admin
 
-Edita `wrangler.toml` y cambia las credenciales por defecto:
+#### Para Desarrollo Local
 
-```toml
-[vars]
-USER = "tu-usuario"      # ← Cambia esto
-PASSWORD = "tu-password" # ← Cambia esto
+Crea un archivo `.dev.vars` en la raíz del proyecto:
+
+```bash
+USER=tu-usuario
+PASSWORD=tu-password-seguro
 ```
 
-⚠️ **IMPORTANTE**: Cambia estas credenciales antes de desplegar a producción.
+⚠️ **IMPORTANTE**: El archivo `.dev.vars` NO se sube a git.
+
+#### Para Producción
+
+Configura los secretos en Cloudflare usando Wrangler:
+
+```bash
+wrangler secret put USER
+# Ingresa tu usuario cuando se solicite
+
+wrangler secret put PASSWORD
+# Ingresa tu password cuando se solicite
+```
 
 ## 🏃 Desarrollo Local
 
@@ -138,10 +159,13 @@ Wrangler te mostrará la URL donde tu aplicación está desplegada (ej: `https:/
 
 ## 🔐 Seguridad
 
-- **Autenticación simple**: Usuario y contraseña desde variables de entorno
+- **Autenticación simple**: Usuario y contraseña mediante Cloudflare Workers secrets
 - **Token en localStorage**: Válido por 7 días
-- **No usar en producción sin HTTPS**: Cloudflare Workers siempre usa HTTPS
-- **Cambiar credenciales**: Usa credenciales fuertes en producción
+- **HTTPS**: Cloudflare Workers siempre usa HTTPS
+- **Variables sensibles**: Nunca incluir credenciales en `wrangler.toml`
+- **Archivos no incluidos en git**: `wrangler.toml`, `.dev.vars`
+- **Archivos incluidos en git**: `wrangler.toml.example` (plantilla sin secretos)
+- **Mejores prácticas**: Usa credenciales fuertes y diferentes para desarrollo y producción
 
 ## 🔧 Comandos Disponibles
 
@@ -188,8 +212,13 @@ El Worker está estructurado de forma simple. Puedes agregar nuevos endpoints en
 - Asegúrate de haber actualizado el `database_id` en `wrangler.toml`
 
 ### Error: "Unauthorized"
-- Verifica que las credenciales en `wrangler.toml` sean correctas
+- **Desarrollo**: Verifica que `.dev.vars` existe y tiene USER y PASSWORD configurados
+- **Producción**: Ejecuta `wrangler secret list` para ver los secretos configurados
 - Borra el localStorage y vuelve a hacer login
+
+### Error: "wrangler.toml not found"
+- Copia la plantilla: `cp wrangler.toml.example wrangler.toml`
+- Actualiza el `database_id` con tu valor
 
 ### Los cambios no se reflejan en desarrollo
 - Detén el servidor (`Ctrl+C`) y vuelve a ejecutar `npm run dev`
