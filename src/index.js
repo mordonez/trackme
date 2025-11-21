@@ -208,7 +208,7 @@ function checkAuth(request, env) {
   }
 
   const token = authHeader.substring(7);
-  return validateToken(token, env.USER, env.PASSWORD);
+  return validateToken(token, env.TRACKME_USER, env.TRACKME_PASSWORD);
 }
 
 // ============================================================================
@@ -1101,7 +1101,7 @@ async function handleLogin(request, env, securityHeaders) {
     const body = await request.json();
     const { username, password } = validateCredentials(body.username, body.password);
 
-    if (username === env.USER && password === env.PASSWORD) {
+    if (username === env.TRACKME_USER && password === env.TRACKME_PASSWORD) {
       const token = generateSecureToken(username, password);
       return jsonResponse({ success: true, token }, securityHeaders);
     }
