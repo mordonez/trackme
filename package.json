@@ -11,10 +11,18 @@
     "db:query": "wrangler d1 execute trackme-db --local --command",
     "db:query:remote": "wrangler d1 execute trackme-db --remote --command"
   },
-  "keywords": ["cloudflare", "workers", "d1", "symptom-tracker"],
+  "keywords": [
+    "cloudflare",
+    "workers",
+    "d1",
+    "symptom-tracker"
+  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
     "wrangler": "^4.0.0"
+  },
+  "dependencies": {
+    "@picocss/pico": "^2.1.1"
   }
 }

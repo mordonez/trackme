@@ -286,85 +286,234 @@ const CSS_STYLES = `
   box-sizing: border-box;
 }
 
+:root {
+  --color-bg: #f5f7fa;
+  --color-surface: #ffffff;
+  --color-primary: #3b82f6;
+  --color-primary-dark: #2563eb;
+  --color-text: #1e293b;
+  --color-text-light: #64748b;
+  --color-border: #e2e8f0;
+  --color-success: #10b981;
+  --color-error: #ef4444;
+  --radius: 8px;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: #f5f5f5;
-  padding: 20px;
-  max-width: 800px;
-  margin: 0 auto;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
   line-height: 1.6;
-}
-
-.container {
-  background: white;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-h1 {
-  color: #333;
-  margin-bottom: 10px;
-  font-size: 28px;
-}
-
-h2 {
-  color: #666;
-  margin: 30px 0 15px;
-  font-size: 20px;
-  border-bottom: 2px solid #eee;
-  padding-bottom: 8px;
-}
-
-.subtitle {
-  color: #888;
-  font-size: 14px;
-  margin-bottom: 30px;
-}
-
-/* Login Form */
-#loginForm {
-  max-width: 400px;
-  margin: 100px auto;
-}
-
-#loginForm input {
-  width: 100%;
-  padding: 12px;
-  margin: 8px 0;
-  border: 1px solid #ddd;
-  border-radius: 6px;
   font-size: 16px;
 }
 
-/* Symptom Buttons */
+.container {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* Typography */
+h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: var(--color-text);
+}
+
+h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 1.5rem 0 0.75rem;
+  color: var(--color-text);
+}
+
+/* Card */
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1rem;
+}
+
+/* Button Base */
+button, .btn {
+  display: inline-block;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-align: center;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+  background: var(--color-primary);
+  color: white;
+}
+
+button:hover, .btn:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+button:active, .btn:active {
+  transform: translateY(0);
+}
+
+button.secondary {
+  background: var(--color-text-light);
+}
+
+button.secondary:hover {
+  background: var(--color-text);
+}
+
+button.outline {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+button.outline:hover {
+  background: var(--color-bg);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+button.danger {
+  background: var(--color-error);
+}
+
+button.danger:hover {
+  background: #dc2626;
+}
+
+/* Input */
+input, textarea {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 0.9375rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--color-text);
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+/* Symptom Grid */
 .symptom-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 15px;
-  margin-bottom: 30px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+@media (min-width: 480px) {
+  .symptom-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .symptom-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--color-primary);
   color: white;
   border: none;
-  padding: 20px;
-  border-radius: 10px;
-  font-size: 18px;
-  font-weight: 600;
+  padding: 1rem;
+  border-radius: var(--radius);
+  font-size: 0.9375rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+  min-height: 65px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
 }
 
 .symptom-btn:hover {
+  background: var(--color-primary-dark);
+  box-shadow: var(--shadow);
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
 }
 
 .symptom-btn:active {
   transform: translateY(0);
+}
+
+/* Top Navigation */
+.top-nav {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.top-nav button {
+  flex: 1;
+  min-width: 120px;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+}
+
+/* History */
+.history-item {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  box-shadow: var(--shadow-sm);
+  border-left: 3px solid var(--color-primary);
+}
+
+.history-date {
+  color: var(--color-primary);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+}
+
+.history-type {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.history-notes {
+  color: var(--color-text-light);
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.history-time {
+  color: var(--color-text-light);
+  font-size: 0.8125rem;
+  margin-top: 0.5rem;
 }
 
 /* Modal */
@@ -375,10 +524,11 @@ h2 {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 1rem;
 }
 
 .modal.show {
@@ -386,195 +536,108 @@ h2 {
 }
 
 .modal-content {
-  background: white;
-  padding: 30px;
-  border-radius: 12px;
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: 1.5rem;
   max-width: 500px;
-  width: 90%;
+  width: 100%;
   max-height: 90vh;
   overflow-y: auto;
+  box-shadow: var(--shadow-lg);
 }
 
 .modal h3 {
-  margin-bottom: 15px;
-  color: #333;
+  margin-bottom: 1rem;
+  font-size: 1.125rem;
 }
 
-.modal textarea {
-  width: 100%;
-  min-height: 120px;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 14px;
-  font-family: inherit;
-  resize: vertical;
-  margin-bottom: 15px;
-}
-
-/* Buttons */
-.btn {
-  padding: 12px 24px;
-  border: none;
-  border-radius: 6px;
-  font-size: 16px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: opacity 0.2s;
-}
-
-.btn:hover {
-  opacity: 0.9;
-}
-
-.btn-primary {
-  background: #667eea;
-  color: white;
-}
-
-.btn-secondary {
-  background: #ddd;
-  color: #333;
-  margin-left: 10px;
-}
-
-.btn-logout {
-  background: #f44336;
-  color: white;
-  float: right;
-}
-
-.btn-admin {
-  background: #ff9800;
-  color: white;
-  margin-left: 10px;
-}
-
-.btn-back {
-  background: #4caf50;
-  color: white;
-}
-
-.btn-danger {
-  background: #f44336;
-  color: white;
-}
-
-/* History */
-.history-item {
-  padding: 15px;
-  border: 1px solid #eee;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  background: #fafafa;
-}
-
-.history-date {
-  color: #667eea;
-  font-weight: 600;
-  margin-bottom: 5px;
-}
-
-.history-type {
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
-}
-
-.history-notes {
-  color: #666;
-  font-size: 14px;
-  margin-top: 8px;
-  font-style: italic;
-  word-wrap: break-word;
-}
-
-.history-time {
-  color: #999;
-  font-size: 12px;
-  margin-top: 5px;
-}
-
-/* Admin Panel */
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 8px;
-  color: #333;
-  font-weight: 600;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 16px;
-}
-
-.symptom-list {
+.modal-actions {
   display: grid;
-  gap: 15px;
-  margin-top: 20px;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+/* Admin Symptom List */
+.symptom-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .symptom-item {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 20px;
-  background: #f9f9f9;
-  border: 1px solid #eee;
-  border-radius: 8px;
+  gap: 1rem;
 }
 
 .symptom-name {
-  font-size: 18px;
   font-weight: 600;
-  color: #333;
-  word-wrap: break-word;
-  max-width: 70%;
+  flex: 1;
 }
 
 .symptom-date {
-  font-size: 12px;
-  color: #999;
-  margin-top: 4px;
+  font-size: 0.8125rem;
+  color: var(--color-text-light);
+  margin-top: 0.25rem;
 }
 
-.nav-buttons {
-  margin-bottom: 20px;
+.symptom-item button {
+  flex-shrink: 0;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.875rem;
 }
 
-/* Utility Classes */
-.loading {
-  text-align: center;
-  padding: 20px;
-  color: #999;
+/* Alerts */
+.error, .success {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
+  font-size: 0.9375rem;
 }
 
 .error {
-  background: #ffebee;
-  color: #c62828;
-  padding: 12px;
-  border-radius: 6px;
-  margin-bottom: 15px;
-  word-wrap: break-word;
+  background: #fef2f2;
+  color: var(--color-error);
+  border-left: 3px solid var(--color-error);
 }
 
 .success {
-  background: #e8f5e9;
-  color: #2e7d32;
-  padding: 12px;
-  border-radius: 6px;
-  margin-bottom: 15px;
+  background: #f0fdf4;
+  color: var(--color-success);
+  border-left: 3px solid var(--color-success);
 }
 
+/* Utility */
 .hidden {
-  display: none;
+  display: none !important;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: var(--color-text-light);
+}
+
+.text-muted {
+  color: var(--color-text-light);
+}
+
+.w-full {
+  width: 100%;
+}
+
+.header-section {
+  margin: 1rem 0 1.5rem;
+}
+
+.subtitle {
+  margin-bottom: 1.5rem;
 }
 `;
 
@@ -885,7 +948,7 @@ async function loadSymptoms() {
           '<div class="symptom-name">' + escapeHtml(type.name) + '</div>' +
           '<div class="symptom-date">Creado: ' + formatDate(type.created_at) + '</div>' +
         '</div>' +
-        '<button class="btn btn-danger" onclick="deleteSymptom(' + type.id + ', \\'' + escapeHtml(type.name).replace(/'/g, "\\\\'") + '\\')">🗑️ Eliminar</button>' +
+        '<button class="outline contrast" onclick="deleteSymptom(' + type.id + ', \\'' + escapeHtml(type.name).replace(/'/g, "\\\\'") + '\\')">🗑️ Eliminar</button>' +
       '</div>'
     ).join('');
   } catch (error) {
@@ -998,49 +1061,71 @@ function generateIndexHTML() {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="TrackMe - Aplicación minimalista para seguimiento de síntomas">
-    <title>TrackMe - Seguimiento de Síntomas</title>
+    <meta name="description" content="TrackMe - Seguimiento minimalista de síntomas">
+    <title>TrackMe</title>
     <style>${CSS_STYLES}</style>
 </head>
 <body>
-    <!-- Login Form -->
+    <!-- Login -->
     <div id="loginForm" class="container">
-        <h1>🔐 Iniciar Sesión</h1>
-        <p class="subtitle">Ingresa tus credenciales para continuar</p>
-        <div id="loginError" class="error hidden"></div>
-        <input type="text" id="username" placeholder="Usuario" autocomplete="username" maxlength="100">
-        <input type="password" id="password" placeholder="Contraseña" autocomplete="current-password" maxlength="100">
-        <button class="btn btn-primary" onclick="login()" style="width: 100%; margin-top: 10px;">Entrar</button>
+        <div class="card" style="max-width: 400px; margin: 3rem auto;">
+            <h1>🩺 TrackMe</h1>
+            <p class="text-muted subtitle">Seguimiento simple de síntomas</p>
+            <div id="loginError" class="hidden"></div>
+            <form onsubmit="event.preventDefault(); login();">
+                <div class="form-group">
+                    <label>Usuario</label>
+                    <input type="text" id="username" placeholder="Tu usuario" autocomplete="username" maxlength="100" required>
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="password" placeholder="Tu contraseña" autocomplete="current-password" maxlength="100" required>
+                </div>
+                <button type="submit" class="w-full">Entrar</button>
+            </form>
+        </div>
     </div>
 
     <!-- Main App -->
     <div id="mainApp" class="container hidden">
-        <h1>📊 TrackMe</h1>
-        <p class="subtitle">Registra tus síntomas de forma simple y rápida</p>
-        <button class="btn btn-logout" onclick="logout()">Cerrar Sesión</button>
-        <button class="btn btn-admin" onclick="goToAdmin()">Panel Admin</button>
-        <div style="clear: both; margin-bottom: 20px;"></div>
+        <div class="header-section">
+            <h1>🩺 TrackMe</h1>
+            <p class="text-muted">Registra tus síntomas</p>
+        </div>
+
+        <div class="top-nav">
+            <button class="outline" onclick="goToAdmin()">⚙️ Admin</button>
+            <button class="outline secondary" onclick="logout()">Salir</button>
+        </div>
 
         <div id="message" class="hidden"></div>
 
-        <h2>📝 Registrar Evento</h2>
-        <div id="symptomButtons" class="symptom-grid">
-            <div class="loading">Cargando síntomas...</div>
+        <div>
+            <h2>Registrar Síntoma</h2>
+            <div id="symptomButtons" class="symptom-grid">
+                <div class="loading">Cargando...</div>
+            </div>
         </div>
 
-        <h2>📅 Historial (Últimos 14 días)</h2>
-        <div id="history">
-            <div class="loading">Cargando historial...</div>
+        <div>
+            <h2>Historial (14 días)</h2>
+            <div id="history">
+                <div class="loading">Cargando...</div>
+            </div>
         </div>
     </div>
 
-    <!-- Modal for notes -->
+    <!-- Modal -->
     <div id="modal" class="modal" onclick="if(event.target===this) closeModal()">
         <div class="modal-content">
             <h3 id="modalTitle">Agregar Notas</h3>
-            <textarea id="notesInput" placeholder="Escribe aquí cualquier detalle adicional (opcional)..." maxlength="1000"></textarea>
-            <button class="btn btn-primary" onclick="saveSymptom()">Guardar</button>
-            <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+            <div class="form-group">
+                <textarea id="notesInput" placeholder="Detalles opcionales..." maxlength="1000" rows="4"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button onclick="saveSymptom()">Guardar</button>
+                <button class="secondary" onclick="closeModal()">Cancelar</button>
+            </div>
         </div>
     </div>
 
@@ -1056,34 +1141,38 @@ function generateAdminHTML() {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Panel de administración - TrackMe">
-    <title>Admin Panel - TrackMe</title>
+    <title>Admin - TrackMe</title>
     <style>${CSS_STYLES}</style>
 </head>
 <body>
     <div class="container">
-        <h1>⚙️ Panel de Administración</h1>
-        <p class="subtitle">Gestiona los tipos de síntomas a trackear</p>
-        <button class="btn btn-logout" onclick="logout()">Cerrar Sesión</button>
-        <div style="clear: both;"></div>
+        <div class="header-section">
+            <h1>⚙️ Panel Admin</h1>
+            <p class="text-muted">Gestiona los síntomas</p>
+        </div>
 
-        <div class="nav-buttons">
-            <button class="btn btn-back" onclick="goToHome()">← Volver al Inicio</button>
+        <div class="top-nav">
+            <button class="outline" onclick="goToHome()">← Volver</button>
+            <button class="outline secondary" onclick="logout()">Salir</button>
         </div>
 
         <div id="message" class="hidden"></div>
 
-        <h2>➕ Agregar Nuevo Síntoma</h2>
-        <form id="addForm" onsubmit="addSymptom(event)">
-            <div class="form-group">
-                <label for="symptomName">Nombre del síntoma</label>
-                <input type="text" id="symptomName" placeholder="Ej: Dolor de cabeza" required maxlength="100">
-            </div>
-            <button type="submit" class="btn btn-primary">Agregar Síntoma</button>
-        </form>
+        <div class="card">
+            <h2>Agregar Síntoma</h2>
+            <form id="addForm" onsubmit="addSymptom(event)">
+                <div class="form-group">
+                    <input type="text" id="symptomName" placeholder="Ej: Dolor de cabeza" required maxlength="100">
+                </div>
+                <button type="submit">Agregar</button>
+            </form>
+        </div>
 
-        <h2>📋 Síntomas Existentes</h2>
-        <div id="symptomList" class="symptom-list">
-            <div class="loading">Cargando síntomas...</div>
+        <div>
+            <h2>Lista de Síntomas</h2>
+            <div id="symptomList" class="symptom-list">
+                <div class="loading">Cargando...</div>
+            </div>
         </div>
     </div>
 
