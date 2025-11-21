@@ -373,6 +373,58 @@ const CSS_STYLES = `
   letter-spacing: 0.5px;
 }
 
+.history-type {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.history-notes {
+  color: var(--muted-color);
+  font-size: 0.9rem;
+  font-style: italic;
+  margin-top: 0.5rem;
+}
+
+.history-time {
+  color: var(--muted-color);
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+/* Admin symptom list */
+.symptom-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.symptom-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: var(--card-background-color);
+  border-radius: var(--border-radius);
+  gap: 1rem;
+}
+
+.symptom-name {
+  font-weight: 600;
+  flex: 1;
+}
+
+.symptom-date {
+  font-size: 0.85rem;
+  color: var(--muted-color);
+  display: block;
+  margin-top: 0.25rem;
+}
+
+.symptom-item button {
+  flex-shrink: 0;
+}
+
 /* Modal con backdrop blur */
 .modal {
   display: none;
@@ -426,6 +478,13 @@ const CSS_STYLES = `
     transform: translateY(0);
     opacity: 1;
   }
+}
+
+/* Loading indicator */
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: var(--muted-color);
 }
 
 /* Utility */
@@ -923,16 +982,6 @@ function generateIndexHTML() {
             </label>
             <footer>
                 <div class="grid">
-                    <button onclick="saveSymptom()" role="button">Guardar</button>
-                    <button class="secondary" onclick="closeModal()" role="button">Cancelar</button>
-                </div>
-            </footer>
-        </article>
-    </div>
-
-    <script>${JS_MAIN_APP}</script>
-</body>
-</html>`;
                     <button onclick="saveSymptom()" role="button">Guardar</button>
                     <button class="secondary" onclick="closeModal()" role="button">Cancelar</button>
                 </div>
