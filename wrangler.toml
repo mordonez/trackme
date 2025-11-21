@@ -1,16 +1,21 @@
 name = "trackme"
 main = "src/index.js"
 compatibility_date = "2024-01-01"
+preview_urls = true
+
+[[routes]]
+pattern = "trackme.miguelordonez.com"
+custom_domain = true
 
 # Variables de entorno para autenticación
-# IMPORTANTE: Las variables sensibles se configuran mediante secrets
-# Desarrollo: usa .dev.vars (no incluido en git)
-# Producción: wrangler secret put USER / wrangler secret put PASSWORD
+# IMPORTANTE: Las variables sensibles deben configurarse en:
+# - Desarrollo local: archivo .dev.vars (no incluido en git)
+# - Producción: wrangler secret put USER / wrangler secret put PASSWORD
 [vars]
-# No incluir secretos aquí - usar .dev.vars o wrangler secrets
+# USER y PASSWORD se configuran mediante secrets (ver SETUP.md)
 
 # Base de datos D1
 [[d1_databases]]
 binding = "DB"
 database_name = "trackme-db"
-database_id = "preview-database-id"  # Se generará automáticamente al crear la DB
+database_id = "aef49eea-12fe-4498-8005-5a99801b7132"  # Se generará al crear la DB con: wrangler d1 create trackme-db
