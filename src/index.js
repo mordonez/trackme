@@ -1137,17 +1137,13 @@ function formatDateTime(timestamp) {
   });
 }
 
-// Enter key to login
-document.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter' && !document.getElementById('loginForm').classList.contains('hidden')) {
-    login();
-  }
-});
-
 // Close modal on escape key
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && !document.getElementById('modal').classList.contains('hidden')) {
-    closeModal();
+  if (e.key === 'Escape') {
+    const modal = document.getElementById('modal');
+    if (modal && !modal.classList.contains('hidden')) {
+      closeModal();
+    }
   }
 });
 `;
