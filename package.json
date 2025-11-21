@@ -1,0 +1,17 @@
+{
+  "name": "trackme",
+  "version": "1.0.0",
+  "description": "Minimalist symptom tracker with Cloudflare Workers + D1",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:init": "wrangler d1 execute trackme-db --file=./schema.sql"
+  },
+  "keywords": ["cloudflare", "workers", "d1", "symptom-tracker"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}

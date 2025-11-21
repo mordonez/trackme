@@ -1,0 +1,15 @@
+name = "trackme"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+# Variables de entorno para autenticación
+# IMPORTANTE: Configura estos valores antes de desplegar
+[vars]
+USER = "admin"
+PASSWORD = "changeme"
+
+# Base de datos D1
+[[d1_databases]]
+binding = "DB"
+database_name = "trackme-db"
+database_id = "preview-database-id"  # Se generará automáticamente al crear la DB
