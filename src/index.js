@@ -43,7 +43,7 @@ function getSecurityHeaders() {
     'Content-Security-Policy': [
       "default-src 'self'",
       "script-src 'unsafe-inline' 'self'",
-      "style-src 'unsafe-inline' 'self' https://cdn.jsdelivr.net",
+      "style-src 'unsafe-inline' 'self'",
       "img-src 'self' data:",
       "connect-src 'self'",
       "font-src 'self'",
@@ -281,151 +281,42 @@ function htmlResponse(html, headers = {}) {
 
 const CSS_STYLES = `
 /* ============================================================================
-   TRACKME - Estilos personalizados sobre Pico CSS
-   Diseño único y moderno, aprovechando Pico como base
+   CUSTOM STYLES for TrackMe with Pico CSS
+   Pico CSS provides base responsive styles, we only add app-specific styles
    ============================================================================ */
 
-:root {
-  --primary: #6366f1;
-  --primary-hover: #4f46e5;
-  --primary-focus: rgba(99, 102, 241, 0.125);
-  --primary-inverse: #fff;
-}
-
-/* Header con gradiente */
-.app-header {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  color: white;
-  padding: 2rem 1rem;
-  margin: calc(var(--block-spacing-vertical) * -1) calc(var(--block-spacing-horizontal) * -1) var(--block-spacing-vertical);
-  border-radius: 0 0 1.5rem 1.5rem;
-  box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
-}
-
-.app-header h1 {
-  margin-bottom: 0.25rem;
-}
-
-.app-header p {
-  opacity: 0.95;
-  margin: 0;
-}
-
-/* Botones de síntomas con gradiente */
+/* Symptom Grid - Responsive button grid */
 .symptom-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
   gap: 0.75rem;
-  margin: var(--block-spacing-vertical) 0;
-}
-
-@media (min-width: 576px) {
-  .symptom-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  margin: 1rem 0;
 }
 
 .symptom-btn {
-  background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
   border: none;
-  min-height: 70px;
+  padding: 0.875rem;
+  border-radius: var(--border-radius);
+  font-size: 0.875rem;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
-  transition: all 0.2s ease;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  text-align: center;
 }
 
 .symptom-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
 }
 
 .symptom-btn:active {
-  transform: scale(0.98);
+  transform: translateY(0);
 }
 
-/* Navegación superior compacta */
-.top-nav {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.top-nav button {
-  flex: 1;
-  min-width: fit-content;
-}
-
-/* Items del historial con borde de color */
-.history-item {
-  border-left: 4px solid var(--primary);
-  transition: transform 0.2s ease;
-}
-
-.history-item:hover {
-  transform: translateX(4px);
-}
-
-.history-date {
-  color: var(--primary);
-  font-weight: 700;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.history-type {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-}
-
-.history-notes {
-  color: var(--muted-color);
-  font-size: 0.9rem;
-  font-style: italic;
-  margin-top: 0.5rem;
-}
-
-.history-time {
-  color: var(--muted-color);
-  font-size: 0.85rem;
-  margin-top: 0.25rem;
-}
-
-/* Admin symptom list */
-.symptom-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.symptom-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-  background: var(--card-background-color);
-  border-radius: var(--border-radius);
-  gap: 1rem;
-}
-
-.symptom-name {
-  font-weight: 600;
-  flex: 1;
-}
-
-.symptom-date {
-  font-size: 0.85rem;
-  color: var(--muted-color);
-  display: block;
-  margin-top: 0.25rem;
-}
-
-.symptom-item button {
-  flex-shrink: 0;
-}
-
-/* Modal con backdrop blur */
+/* Modal */
 .modal {
   display: none;
   position: fixed;
@@ -433,8 +324,7 @@ const CSS_STYLES = `
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
+  background: rgba(0,0,0,0.5);
   align-items: center;
   justify-content: center;
   z-index: 999;
@@ -446,50 +336,176 @@ const CSS_STYLES = `
 }
 
 .modal-content {
+  background: var(--background-color);
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
   max-width: 500px;
   width: 100%;
-  max-height: 90vh;
+  max-height: 85vh;
   overflow-y: auto;
-  animation: slideUp 0.3s ease;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
 }
 
-@keyframes slideUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+/* History Items */
+.history-item {
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  background: var(--card-background-color);
+  border: 1px solid var(--muted-border-color);
+  border-radius: var(--border-radius);
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-/* Alertas con animación */
-[role="alert"] {
-  animation: slideDown 0.3s ease;
+.history-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 
-@keyframes slideDown {
-  from {
-    transform: translateY(-10px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+.history-date {
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
 }
 
-/* Loading indicator */
+.history-type {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.history-notes {
+  color: var(--muted-color);
+  font-size: 0.875rem;
+  font-style: italic;
+  margin-top: 0.5rem;
+}
+
+.history-time {
+  color: var(--muted-color);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+/* Symptom Admin List */
+.symptom-list {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.symptom-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: var(--card-background-color);
+  border: 1px solid var(--muted-border-color);
+  border-radius: var(--border-radius);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.symptom-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.symptom-name {
+  font-weight: 600;
+  flex: 1;
+  margin-right: 1rem;
+}
+
+.symptom-date {
+  font-size: 0.75rem;
+  color: var(--muted-color);
+  margin-top: 0.25rem;
+}
+
+/* Utility Classes */
+.subtitle {
+  color: var(--muted-color);
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+}
+
 .loading {
   text-align: center;
   padding: 2rem;
   color: var(--muted-color);
 }
 
-/* Utility */
+.error {
+  background: #ffebee;
+  color: #c62828;
+  padding: 0.75rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1rem;
+}
+
+.success {
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 0.75rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1rem;
+}
+
 .hidden {
   display: none !important;
+}
+
+/* Button Variants */
+button.secondary {
+  background: var(--secondary);
+  margin-left: 0.5rem;
+}
+
+button[role="button"].outline.danger {
+  --primary: #f44336;
+  --primary-hover: #d32f2f;
+}
+
+/* Top Button Group */
+.button-group {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.button-group button {
+  flex: 0 1 auto;
+  margin: 0;
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
+  .symptom-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+  }
+
+  .symptom-btn {
+    padding: 1.25rem;
+    font-size: 1rem;
+  }
+
+  .modal-content {
+    padding: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .symptom-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .symptom-btn {
+    padding: 1.5rem;
+    font-size: 1.125rem;
+  }
 }
 `;
 
@@ -588,7 +604,7 @@ async function loadSymptoms() {
     const container = document.getElementById('symptomButtons');
 
     if (!data.types || data.types.length === 0) {
-      container.innerHTML = '<p>No hay síntomas configurados. Ve al Panel Admin para agregar algunos.</p>';
+      container.innerHTML = '<p style="color: #999;">No hay síntomas configurados. Ve al Panel Admin para agregar algunos.</p>';
       return;
     }
 
@@ -597,7 +613,7 @@ async function loadSymptoms() {
     ).join('');
   } catch (error) {
     console.error('Load symptoms error:', error);
-    document.getElementById('symptomButtons').innerHTML = '<p role="alert">Error al cargar síntomas</p>';
+    document.getElementById('symptomButtons').innerHTML = '<p class="error">Error al cargar síntomas</p>';
   }
 }
 
@@ -790,7 +806,7 @@ async function loadSymptoms() {
     const container = document.getElementById('symptomList');
 
     if (!data.types || data.types.length === 0) {
-      container.innerHTML = '<p style="text-align: center; padding: 2rem;">No hay síntomas configurados</p>';
+      container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">No hay síntomas configurados</p>';
       return;
     }
 
@@ -800,12 +816,12 @@ async function loadSymptoms() {
           '<div class="symptom-name">' + escapeHtml(type.name) + '</div>' +
           '<div class="symptom-date">Creado: ' + formatDate(type.created_at) + '</div>' +
         '</div>' +
-        '<button class="outline contrast" role="button" onclick="deleteSymptom(' + type.id + ', \\'' + escapeHtml(type.name).replace(/'/g, "\\\\'") + '\\')">🗑️ Eliminar</button>' +
+        '<button class="outline contrast" onclick="deleteSymptom(' + type.id + ', \\'' + escapeHtml(type.name).replace(/'/g, "\\\\'") + '\\')">🗑️ Eliminar</button>' +
       '</div>'
     ).join('');
   } catch (error) {
     console.error('Load symptoms error:', error);
-    document.getElementById('symptomList').innerHTML = '<p role="alert">Error al cargar síntomas</p>';
+    document.getElementById('symptomList').innerHTML = '<p class="error">Error al cargar síntomas</p>';
   }
 }
 
@@ -922,20 +938,14 @@ function generateIndexHTML() {
     <!-- Login Form -->
     <main id="loginForm" class="container">
         <article>
-            <header class="app-header">
-                <h1>🔐 TrackMe</h1>
-                <p>Inicia sesión para continuar</p>
-            </header>
-            <div id="loginError" role="alert" class="hidden"></div>
+            <hgroup>
+                <h1>🔐 Iniciar Sesión</h1>
+                <p class="subtitle">Ingresa tus credenciales para continuar</p>
+            </hgroup>
+            <div id="loginError" class="error hidden"></div>
             <form onsubmit="event.preventDefault(); login();">
-                <label>
-                    Usuario
-                    <input type="text" id="username" name="username" placeholder="Tu usuario" autocomplete="username" maxlength="100" required>
-                </label>
-                <label>
-                    Contraseña
-                    <input type="password" id="password" name="password" placeholder="Tu contraseña" autocomplete="current-password" maxlength="100" required>
-                </label>
+                <input type="text" id="username" placeholder="Usuario" autocomplete="username" maxlength="100" required>
+                <input type="password" id="password" placeholder="Contraseña" autocomplete="current-password" maxlength="100" required>
                 <button type="submit">Entrar</button>
             </form>
         </article>
@@ -943,49 +953,42 @@ function generateIndexHTML() {
 
     <!-- Main App -->
     <main id="mainApp" class="container hidden">
-        <div class="app-header">
+        <hgroup>
             <h1>📊 TrackMe</h1>
-            <p>Registra tus síntomas de forma simple y rápida</p>
+            <p class="subtitle">Registra tus síntomas de forma simple y rápida</p>
+        </hgroup>
+
+        <div class="button-group">
+            <button class="outline secondary" onclick="goToAdmin()">⚙️ Panel Admin</button>
+            <button class="outline contrast" onclick="logout()">Cerrar Sesión</button>
         </div>
 
-        <nav class="top-nav">
-            <button class="outline secondary" onclick="goToAdmin()" role="button">⚙️ Admin</button>
-            <button class="outline contrast" onclick="logout()" role="button">Salir</button>
-        </nav>
-
-        <div id="message" role="alert" class="hidden"></div>
+        <div id="message" class="hidden"></div>
 
         <section>
             <h2>📝 Registrar Evento</h2>
             <div id="symptomButtons" class="symptom-grid">
-                <div class="loading" aria-live="polite">Cargando...</div>
+                <div class="loading">Cargando síntomas...</div>
             </div>
         </section>
 
         <section>
-            <h2>📅 Historial (14 días)</h2>
+            <h2>📅 Historial (Últimos 14 días)</h2>
             <div id="history">
-                <div class="loading" aria-live="polite">Cargando...</div>
+                <div class="loading">Cargando historial...</div>
             </div>
         </section>
     </main>
 
     <!-- Modal for notes -->
-    <div id="modal" class="modal" role="dialog" aria-labelledby="modalTitle" aria-modal="true" onclick="if(event.target===this) closeModal()">
+    <div id="modal" class="modal" onclick="if(event.target===this) closeModal()">
         <article class="modal-content">
-            <header>
-                <h3 id="modalTitle">Agregar Notas</h3>
-            </header>
-            <label>
-                Notas (opcional)
-                <textarea id="notesInput" name="notes" placeholder="Escribe aquí cualquier detalle adicional..." maxlength="1000" rows="4"></textarea>
-            </label>
-            <footer>
-                <div class="grid">
-                    <button onclick="saveSymptom()" role="button">Guardar</button>
-                    <button class="secondary" onclick="closeModal()" role="button">Cancelar</button>
-                </div>
-            </footer>
+            <h3 id="modalTitle">Agregar Notas</h3>
+            <textarea id="notesInput" placeholder="Escribe aquí cualquier detalle adicional (opcional)..." maxlength="1000"></textarea>
+            <div class="grid">
+                <button onclick="saveSymptom()">Guardar</button>
+                <button class="secondary" onclick="closeModal()">Cancelar</button>
+            </div>
         </article>
     </div>
 
@@ -1007,30 +1010,33 @@ function generateAdminHTML() {
 </head>
 <body>
     <main class="container">
-        <div class="app-header">
-            <h1>⚙️ Panel Admin</h1>
-            <p>Gestiona los síntomas</p>
+        <hgroup>
+            <h1>⚙️ Panel de Administración</h1>
+            <p class="subtitle">Gestiona los tipos de síntomas a trackear</p>
+        </hgroup>
+
+        <div class="button-group">
+            <button class="outline" onclick="goToHome()">← Volver al Inicio</button>
+            <button class="outline contrast" onclick="logout()">Cerrar Sesión</button>
         </div>
 
-        <nav class="top-nav">
-            <button class="outline" onclick="goToHome()" role="button">← Volver</button>
-            <button class="outline contrast" onclick="logout()" role="button">Salir</button>
-        </nav>
-
-        <div id="message" role="alert" class="hidden"></div>
+        <div id="message" class="hidden"></div>
 
         <section>
-            <h2>➕ Nuevo Síntoma</h2>
+            <h2>➕ Agregar Nuevo Síntoma</h2>
             <form id="addForm" onsubmit="addSymptom(event)">
-                <input type="text" id="symptomName" name="symptomName" placeholder="Ej: Dolor de cabeza" required maxlength="100">
-                <button type="submit" role="button">Agregar</button>
+                <label for="symptomName">
+                    Nombre del síntoma
+                    <input type="text" id="symptomName" placeholder="Ej: Dolor de cabeza" required maxlength="100">
+                </label>
+                <button type="submit">Agregar Síntoma</button>
             </form>
         </section>
 
         <section>
-            <h2>📋 Lista de Síntomas</h2>
+            <h2>📋 Síntomas Existentes</h2>
             <div id="symptomList" class="symptom-list">
-                <div class="loading" aria-live="polite">Cargando...</div>
+                <div class="loading">Cargando síntomas...</div>
             </div>
         </section>
     </main>
