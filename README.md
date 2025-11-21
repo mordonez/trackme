@@ -76,17 +76,26 @@ npm run db:init
 
 Esto creará las tablas necesarias y agregará 3 síntomas de ejemplo.
 
-### 6. Configurar Credenciales de Admin
+### 6. Configurar Credenciales
 
-Edita `wrangler.toml` y cambia las credenciales por defecto:
+**⚠️ IMPORTANTE: Las credenciales NO deben estar en el repositorio.**
 
-```toml
-[vars]
-USER = "tu-usuario"      # ← Cambia esto
-PASSWORD = "tu-password" # ← Cambia esto
+Para desarrollo local:
+```bash
+# Copiar plantilla
+cp .dev.vars.example .dev.vars
+
+# Editar con tus credenciales
+nano .dev.vars
 ```
 
-⚠️ **IMPORTANTE**: Cambia estas credenciales antes de desplegar a producción.
+Para producción (Cloudflare Secrets):
+```bash
+npx wrangler secret put USER
+npx wrangler secret put PASSWORD
+```
+
+**📖 Ver guía completa:** [SECRETS.md](./SECRETS.md)
 
 ## 🏃 Desarrollo Local
 
@@ -144,18 +153,30 @@ Wrangler te mostrará la URL donde tu aplicación está desplegada (ej: `https:/
 
 ## 🔐 Seguridad
 
-- **Autenticación simple**: Usuario y contraseña desde variables de entorno
+- **Gestión de Credenciales**:
+  - ✅ Desarrollo local: `.dev.vars` (nunca se commitea)
+  - ✅ Producción: Cloudflare Secrets (encriptados)
+  - ❌ NUNCA commitear credenciales en el código
+- **Autenticación**: Usuario y contraseña desde secretos
 - **Token en localStorage**: Válido por 7 días
-- **No usar en producción sin HTTPS**: Cloudflare Workers siempre usa HTTPS
-- **Cambiar credenciales**: Usa credenciales fuertes en producción
+- **HTTPS**: Cloudflare Workers siempre usa HTTPS
+- **Mejores Prácticas**: Ver guía completa en [SECRETS.md](./SECRETS.md)
 
 ## 🔧 Comandos Disponibles
 
 ```bash
-npm run dev       # Desarrollo local
-npm run deploy    # Desplegar a producción
-npm run db:init   # Inicializar base de datos
+npm run dev              # Desarrollo con DB remota
+npm run dev:local        # Desarrollo con DB local (recomendado)
+npm run deploy           # Desplegar a producción
+npm run db:init          # Inicializar base de datos
+npm run db:create        # Crear nueva base de datos
+npm run db:list          # Listar bases de datos
+npm run db:query         # Ejecutar consulta SQL
+npm run preview:create   # Crear preview manual
+npm run preview:delete   # Borrar preview manual
 ```
+
+**📖 Ver todos los comandos:** [DEVELOPMENT.md](./DEVELOPMENT.md)
 
 ## 📊 Endpoints de la API
 

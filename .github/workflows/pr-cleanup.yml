@@ -28,6 +28,15 @@ jobs:
           echo "DB_NAME=trackme-pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
           echo "WORKER_NAME=trackme-pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
 
+      - name: Delete Cloudflare Secrets
+        run: |
+          echo "Deleting secrets for worker ${{ env.WORKER_NAME }}..."
+          npx wrangler secret delete USER --name ${{ env.WORKER_NAME }} --force || echo "Secret may not exist"
+          npx wrangler secret delete PASSWORD --name ${{ env.WORKER_NAME }} --force || echo "Secret may not exist"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
       - name: Delete Cloudflare Worker
         run: |
           echo "Deleting worker ${{ env.WORKER_NAME }}..."
@@ -69,8 +78,9 @@ jobs:
             **Deleted Resources:**
             - ✅ Worker: \`${workerName}\`
             - ✅ Database: \`${dbName}\`
+            - ✅ Secrets: USER, PASSWORD
 
-            All temporary resources have been removed.
+            All temporary resources have been removed. No credentials or data remain.
             `;
 
             await github.rest.issues.createComment({

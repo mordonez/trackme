@@ -1,0 +1,10 @@
+# Variables de entorno para desarrollo local
+# Copia este archivo a .dev.vars y configura tus valores
+# NUNCA commitees el archivo .dev.vars
+
+# Credenciales de autenticación
+USER=admin
+PASSWORD=tu-password-seguro
+
+# Base de datos D1 (opcional - solo si usas DB remota en desarrollo)
+# DATABASE_ID=tu-database-id-aqui

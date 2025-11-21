@@ -109,10 +109,32 @@ database_id = "${dbId}"
     console.log('\n🚀 Desplegando worker...');
     exec(`npx wrangler deploy --config ${configPath}`);
 
+    // Configurar secretos
+    console.log('\n🔐 Configurando secretos de Cloudflare...');
+    const username = 'admin';
+    const password = sanitizedBranch;
+
+    try {
+      execSync(`echo "${username}" | npx wrangler secret put USER --name ${workerName}`, {
+        stdio: 'inherit',
+        encoding: 'utf-8'
+      });
+      execSync(`echo "${password}" | npx wrangler secret put PASSWORD --name ${workerName}`, {
+        stdio: 'inherit',
+        encoding: 'utf-8'
+      });
+      console.log('✅ Secretos configurados correctamente');
+    } catch (error) {
+      console.warn('⚠️  Warning: No se pudieron configurar los secretos automáticamente');
+      console.log('   Configúralos manualmente con:');
+      console.log(`   npx wrangler secret put USER --name ${workerName}`);
+      console.log(`   npx wrangler secret put PASSWORD --name ${workerName}`);
+    }
+
     console.log('\n✅ ¡Entorno de preview creado exitosamente!');
     console.log(`\n🌐 URL: https://${workerName}.workers.dev`);
-    console.log(`🔐 User: admin`);
-    console.log(`🔐 Password: ${sanitizedBranch}`);
+    console.log(`🔐 User: ${username}`);
+    console.log(`🔐 Password: ${password}`);
     console.log(`\n💡 Para borrar este preview: npm run preview:delete ${branchName}`);
 
   } catch (error) {

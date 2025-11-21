@@ -31,7 +31,29 @@ npm install
 npx wrangler login
 ```
 
-### 4. Configurar Secretos de GitHub (Solo una vez)
+### 4. Configurar Variables de Desarrollo Local
+
+**⚠️ IMPORTANTE:** Las credenciales NUNCA se deben commitear al repositorio.
+
+```bash
+# Copiar la plantilla
+cp .dev.vars.example .dev.vars
+
+# Editar con tus credenciales
+nano .dev.vars
+```
+
+Contenido de `.dev.vars`:
+```bash
+USER=admin
+PASSWORD=tu-password-super-seguro
+```
+
+El archivo `.dev.vars` está en `.gitignore` y nunca se commitea. Cada desarrollador tiene su propio archivo local.
+
+**📖 Para una guía completa de gestión de secretos, ver [SECRETS.md](./SECRETS.md)**
+
+### 5. Configurar Secretos de GitHub (Solo una vez)
 
 Para que los workflows de GitHub Actions funcionen, necesitas configurar estos secretos en tu repositorio:
 

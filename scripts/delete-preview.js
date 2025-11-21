@@ -45,6 +45,11 @@ function main() {
   console.log(`   DB: ${dbName}`);
   console.log(`   Worker: ${workerName}`);
 
+  // Borrar secretos primero
+  console.log('\n🗑️  Borrando secretos de Cloudflare...');
+  exec(`npx wrangler secret delete USER --name ${workerName} --force`, true);
+  exec(`npx wrangler secret delete PASSWORD --name ${workerName} --force`, true);
+
   // Borrar worker
   console.log('\n🗑️  Borrando worker...');
   exec(`npx wrangler delete ${workerName} --force`, true);

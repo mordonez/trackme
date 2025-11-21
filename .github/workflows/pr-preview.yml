@@ -66,10 +66,6 @@ jobs:
           main = "src/index.js"
           compatibility_date = "2024-01-01"
 
-          [vars]
-          USER = "admin"
-          PASSWORD = "preview-${{ github.event.pull_request.number }}"
-
           [[d1_databases]]
           binding = "DB"
           database_name = "${{ env.DB_NAME }}"
@@ -78,6 +74,19 @@ jobs:
 
           echo "Generated wrangler.pr.toml:"
           cat wrangler.pr.toml
+
+      - name: Set Cloudflare Secrets for PR
+        run: |
+          echo "Configurando secretos para el worker de PR..."
+          # Usar secretos de GitHub si están configurados, sino valores por defecto
+          USER_VALUE="${{ secrets.PREVIEW_USER || 'admin' }}"
+          PASSWORD_VALUE="${{ secrets.PREVIEW_PASSWORD_BASE || 'preview' }}-${{ github.event.pull_request.number }}"
+
+          echo "$USER_VALUE" | npx wrangler secret put USER --name ${{ env.WORKER_NAME }} --force
+          echo "$PASSWORD_VALUE" | npx wrangler secret put PASSWORD --name ${{ env.WORKER_NAME }} --force
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Initialize database schema
         run: |
@@ -110,6 +119,9 @@ jobs:
 
       - name: Comment on PR
         uses: actions/github-script@v7
+        env:
+          USER_VAL: ${{ secrets.PREVIEW_USER || 'admin' }}
+          PASS_VAL: ${{ secrets.PREVIEW_PASSWORD_BASE || 'preview' }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -117,6 +129,8 @@ jobs:
             const workerUrl = '${{ steps.deploy.outputs.worker_url }}';
             const dbName = '${{ env.DB_NAME }}';
             const dbId = '${{ steps.create-db.outputs.db_id }}';
+            const userName = process.env.USER_VAL;
+            const passwordBase = process.env.PASS_VAL;
 
             const comment = `## 🚀 Preview Environment Ready!
 
@@ -129,12 +143,14 @@ jobs:
             - ID: \`${dbId}\`
 
             **🔐 Credentials:**
-            - User: \`admin\`
-            - Password: \`preview-${prNumber}\`
+            - User: \`${userName}\`
+            - Password: \`${passwordBase}-${prNumber}\`
 
             ---
 
             The preview environment will be automatically deleted when this PR is closed or merged.
+
+            _💡 Credentials are managed via Cloudflare Secrets and will be deleted with this environment._
             `;
 
             // Check if we already commented

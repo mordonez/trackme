@@ -2,24 +2,23 @@ name = "trackme"
 main = "src/index.js"
 compatibility_date = "2024-01-01"
 
-# Variables de entorno para autenticación
-# IMPORTANTE: Configura estos valores antes de desplegar
-[vars]
-USER = "admin"
-PASSWORD = "changeme"
+# IMPORTANTE: Las credenciales se configuran mediante:
+# - Desarrollo local: archivo .dev.vars (copiar desde .dev.vars.example)
+# - Producción/Staging: Cloudflare Secrets (ver SECRETS.md)
 
 # Base de datos D1 - Producción
+# IMPORTANTE: Actualiza el database_id después de crear la DB con:
+# npx wrangler d1 create trackme-db
 [[d1_databases]]
 binding = "DB"
 database_name = "trackme-db"
-database_id = "preview-database-id"  # Se generará automáticamente al crear la DB
+database_id = "YOUR_PRODUCTION_DATABASE_ID"  # ⚠️ Reemplaza con tu database_id
 
 # Entorno de Staging (opcional)
 [env.staging]
 name = "trackme-staging"
-vars = { USER = "admin", PASSWORD = "changeme-staging" }
 
 [[env.staging.d1_databases]]
 binding = "DB"
 database_name = "trackme-db-staging"
-database_id = "staging-database-id"  # Configura después de crear la DB de staging
+database_id = "YOUR_STAGING_DATABASE_ID"  # ⚠️ Reemplaza con tu database_id
