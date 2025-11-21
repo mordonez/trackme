@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "db:init": "wrangler d1 execute trackme-db --file=./schema.sql"
+    "db:init": "wrangler d1 execute trackme-db --local --file=./schema.sql",
+    "db:init:remote": "wrangler d1 execute trackme-db --remote --file=./schema.sql",
+    "db:query": "wrangler d1 execute trackme-db --local --command",
+    "db:query:remote": "wrangler d1 execute trackme-db --remote --command"
   },
   "keywords": ["cloudflare", "workers", "d1", "symptom-tracker"],
   "author": "",

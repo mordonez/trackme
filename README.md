@@ -78,11 +78,23 @@ database_id = "TU-DATABASE-ID-AQUI"  # ← Reemplaza esto
 
 ### 5. Inicializar la Base de Datos
 
+#### Para Desarrollo Local
+
 ```bash
 npm run db:init
 ```
 
-Esto creará las tablas necesarias y agregará 3 síntomas de ejemplo.
+Esto creará las tablas necesarias y agregará 3 síntomas de ejemplo en tu base de datos local.
+
+#### Para Producción
+
+Una vez que hayas desplegado el worker, inicializa la base de datos remota:
+
+```bash
+npm run db:init:remote
+```
+
+Este comando ejecutará el schema en la base de datos D1 de Cloudflare en producción.
 
 ### 6. Configurar Credenciales de Admin
 
@@ -119,11 +131,30 @@ La aplicación estará disponible en: `http://localhost:8787`
 
 ## 🚢 Desplegar a Producción
 
+### 1. Desplegar el Worker
+
 ```bash
 npm run deploy
 ```
 
 Wrangler te mostrará la URL donde tu aplicación está desplegada (ej: `https://trackme.tu-usuario.workers.dev`)
+
+### 2. Inicializar la Base de Datos en Producción
+
+Después del primer despliegue, inicializa la base de datos remota:
+
+```bash
+npm run db:init:remote
+```
+
+### 3. Configurar Secretos (si no lo hiciste antes)
+
+```bash
+wrangler secret put USER
+wrangler secret put PASSWORD
+```
+
+¡Listo! Tu aplicación está en producción.
 
 ## 📖 Uso de la Aplicación
 
@@ -169,10 +200,29 @@ Wrangler te mostrará la URL donde tu aplicación está desplegada (ej: `https:/
 
 ## 🔧 Comandos Disponibles
 
+### Desarrollo y Despliegue
 ```bash
 npm run dev       # Desarrollo local
 npm run deploy    # Desplegar a producción
-npm run db:init   # Inicializar base de datos
+```
+
+### Base de Datos
+```bash
+# Inicializar schema
+npm run db:init          # Inicializar DB local (desarrollo)
+npm run db:init:remote   # Inicializar DB remota (producción)
+
+# Ejecutar consultas SQL
+npm run db:query "SELECT * FROM symptoms"         # Consulta local
+npm run db:query:remote "SELECT * FROM symptoms"  # Consulta en producción
+```
+
+### Comandos Wrangler Directos
+```bash
+wrangler d1 execute trackme-db --local --command="..."    # Consulta local
+wrangler d1 execute trackme-db --remote --command="..."   # Consulta remota
+wrangler tail                                             # Ver logs en producción
+wrangler secret list                                      # Listar secretos
 ```
 
 ## 📊 Endpoints de la API
