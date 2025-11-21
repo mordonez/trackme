@@ -5,7 +5,7 @@
  * Uso: npm run preview:create <branch-name>
  */
 
-const { execSync } = require('child_process');
+const { execSync, spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
@@ -20,7 +20,24 @@ function exec(command) {
   }
 }
 
-function main() {
+function putSecret(name, value, workerName) {
+  return new Promise((resolve, reject) => {
+    const proc = spawn('npx', ['wrangler', 'secret', 'put', name, '--name', workerName], {
+      stdio: ['pipe', 'inherit', 'inherit']
+    });
+    proc.stdin.write(value + '\n');
+    proc.stdin.end();
+    proc.on('close', (code) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(`Process exited with code ${code}`));
+      }
+    });
+  });
+}
+
+async function main() {
   const branchName = process.argv[2] || getCurrentBranch();
 
   if (!branchName) {
@@ -115,14 +132,8 @@ database_id = "${dbId}"
     const password = sanitizedBranch;
 
     try {
-      execSync(`echo "${username}" | npx wrangler secret put USER --name ${workerName}`, {
-        stdio: 'inherit',
-        encoding: 'utf-8'
-      });
-      execSync(`echo "${password}" | npx wrangler secret put PASSWORD --name ${workerName}`, {
-        stdio: 'inherit',
-        encoding: 'utf-8'
-      });
+      await putSecret('USER', username, workerName);
+      await putSecret('PASSWORD', password, workerName);
       console.log('✅ Secretos configurados correctamente');
     } catch (error) {
       console.warn('⚠️  Warning: No se pudieron configurar los secretos automáticamente');
