@@ -99,15 +99,22 @@ Los usuarios ahora se almacenan en la base de datos con contraseñas hasheadas (
 
 ### Error: "no such column: user_id"
 
-**Solución**: Necesitas aplicar el nuevo esquema a la base de datos:
+**Causa**: La base de datos local tiene el esquema antiguo sin la columna `user_id`.
+
+**Solución**: Necesitas eliminar y recrear la base de datos local:
 
 ```bash
-# Para desarrollo local
+# 1. Eliminar la base de datos local existente
+rm -rf .wrangler/state/v3/d1
+
+# 2. Recrear con el nuevo esquema
 npx wrangler d1 execute trackme-db --local --file=schema.sql
 
-# Para producción
-npx wrangler d1 execute trackme-db --remote --file=schema.sql
+# 3. Verificar que se creó correctamente
+npx wrangler d1 execute trackme-db --local --command "PRAGMA table_info(symptom_logs);"
 ```
+
+**Nota**: Esto borrará todos los datos locales. Para producción, ver la sección "Migración de Datos Existentes" más arriba.
 
 ### Error: "El nombre de usuario ya existe"
 
