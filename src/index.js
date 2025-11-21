@@ -280,11 +280,20 @@ function htmlResponse(html, headers = {}) {
 // ============================================================================
 
 const CSS_STYLES = `
+/* ============================================================================
+   RESPONSIVE DESIGN - MOBILE FIRST
+   Breakpoints: Mobile (base), Tablet (768px+), Desktop (1024px+)
+   ============================================================================ */
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
+
+/* ============================================================================
+   BASE STYLES - MOBILE (< 768px)
+   ============================================================================ */
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -421,11 +430,16 @@ h2 {
   font-size: 12px;
   cursor: pointer;
   font-weight: 600;
-  transition: opacity 0.2s;
+  transition: all 0.2s ease;
 }
 
 .btn:hover {
   opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(0);
 }
 
 .btn-primary {
@@ -468,6 +482,12 @@ h2 {
   border-radius: 6px;
   margin-bottom: 6px;
   background: #fafafa;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.history-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
 .history-date {
@@ -516,6 +536,12 @@ h2 {
   border: 1px solid #ddd;
   border-radius: 6px;
   font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #667eea;
 }
 
 .symptom-list {
@@ -532,6 +558,12 @@ h2 {
   background: #f9f9f9;
   border: 1px solid #eee;
   border-radius: 6px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.symptom-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
 
 .symptom-name {
@@ -581,6 +613,329 @@ h2 {
 
 .hidden {
   display: none;
+}
+
+/* ============================================================================
+   TABLET STYLES (768px - 1024px)
+   ============================================================================ */
+
+@media (min-width: 768px) {
+  body {
+    padding: 16px;
+    line-height: 1.5;
+  }
+
+  .container {
+    padding: 20px;
+    max-width: 750px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 26px;
+    margin-bottom: 8px;
+  }
+
+  h2 {
+    font-size: 18px;
+    margin: 20px 0 12px;
+    padding-bottom: 6px;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+
+  /* Login Form */
+  #loginForm {
+    max-width: 450px;
+    margin: 60px auto;
+    padding: 30px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  #loginForm input {
+    padding: 12px;
+    margin: 8px 0;
+    font-size: 15px;
+  }
+
+  /* Symptom Grid - 3 columns */
+  .symptom-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .symptom-btn {
+    padding: 16px 12px;
+    font-size: 15px;
+  }
+
+  /* Modal */
+  .modal-content {
+    padding: 24px;
+    max-width: 500px;
+    width: 500px;
+  }
+
+  .modal h3 {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+
+  .modal textarea {
+    min-height: 100px;
+    padding: 12px;
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  /* Buttons */
+  .btn {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+
+  /* History */
+  .history-item {
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+
+  .history-date {
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+
+  .history-type {
+    font-size: 15px;
+  }
+
+  .history-notes {
+    font-size: 13px;
+    margin-top: 6px;
+  }
+
+  .history-time {
+    font-size: 11px;
+    margin-top: 4px;
+  }
+
+  /* Admin Panel */
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  .form-group label {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+
+  .form-group input {
+    padding: 12px;
+    font-size: 15px;
+  }
+
+  .symptom-list {
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .symptom-item {
+    padding: 14px 16px;
+  }
+
+  .symptom-name {
+    font-size: 16px;
+  }
+
+  .symptom-date {
+    font-size: 11px;
+  }
+
+  .nav-buttons {
+    margin-bottom: 16px;
+  }
+
+  /* Utility */
+  .loading {
+    padding: 16px;
+    font-size: 13px;
+  }
+
+  .error,
+  .success {
+    padding: 10px;
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+}
+
+/* ============================================================================
+   DESKTOP STYLES (1024px+)
+   ============================================================================ */
+
+@media (min-width: 1024px) {
+  body {
+    padding: 24px;
+    line-height: 1.6;
+  }
+
+  .container {
+    padding: 30px;
+    max-width: 1000px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+
+  h1 {
+    font-size: 32px;
+    margin-bottom: 10px;
+  }
+
+  h2 {
+    font-size: 22px;
+    margin: 30px 0 15px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #eee;
+  }
+
+  .subtitle {
+    font-size: 15px;
+    margin-bottom: 24px;
+  }
+
+  /* Login Form */
+  #loginForm {
+    max-width: 500px;
+    margin: 100px auto;
+    padding: 40px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  #loginForm h1 {
+    font-size: 28px;
+  }
+
+  #loginForm input {
+    padding: 14px;
+    margin: 10px 0;
+    font-size: 16px;
+  }
+
+  /* Symptom Grid - 4-5 columns */
+  .symptom-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+  }
+
+  .symptom-btn {
+    padding: 20px 16px;
+    font-size: 16px;
+    border-radius: 8px;
+  }
+
+  /* Modal */
+  .modal-content {
+    padding: 30px;
+    max-width: 600px;
+    width: 600px;
+    border-radius: 12px;
+  }
+
+  .modal h3 {
+    font-size: 20px;
+    margin-bottom: 15px;
+  }
+
+  .modal textarea {
+    min-height: 120px;
+    padding: 14px;
+    font-size: 15px;
+    margin-bottom: 15px;
+  }
+
+  /* Buttons */
+  .btn {
+    padding: 12px 20px;
+    font-size: 15px;
+  }
+
+  /* History - 2 column layout */
+  .history-item {
+    padding: 15px;
+    margin-bottom: 10px;
+  }
+
+  .history-date {
+    font-size: 13px;
+    margin-bottom: 5px;
+  }
+
+  .history-type {
+    font-size: 16px;
+  }
+
+  .history-notes {
+    font-size: 14px;
+    margin-top: 8px;
+  }
+
+  .history-time {
+    font-size: 12px;
+    margin-top: 5px;
+  }
+
+  /* Admin Panel */
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-group label {
+    font-size: 15px;
+    margin-bottom: 8px;
+  }
+
+  .form-group input {
+    padding: 14px;
+    font-size: 16px;
+  }
+
+  .symptom-list {
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .symptom-item {
+    padding: 16px 20px;
+  }
+
+  .symptom-name {
+    font-size: 18px;
+  }
+
+  .symptom-date {
+    font-size: 12px;
+  }
+
+  .nav-buttons {
+    margin-bottom: 20px;
+  }
+
+  /* Utility */
+  .loading {
+    padding: 20px;
+    font-size: 14px;
+  }
+
+  .error,
+  .success {
+    padding: 12px;
+    font-size: 14px;
+    margin-bottom: 15px;
+  }
 }
 `;
 
