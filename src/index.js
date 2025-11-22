@@ -6,7 +6,6 @@
 import { Hono } from 'hono';
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
 import { html, raw } from 'hono/html';
-import { basicAuth } from 'hono/basic-auth';
 
 // ============================================================================
 // CONFIGURATION
@@ -579,7 +578,31 @@ const Layout = ({ title, children, includeModal = false }) => html`
 // HONO APP WITH BINDINGS
 // ============================================================================
 
-// Define bindings types for better IDE support and type safety
+/**
+ * Following Hono Best Practices:
+ * 
+ * 1. ✅ No Rails-like Controllers: Handlers are defined inline after routes
+ *    for proper type inference of path parameters and context
+ * 
+ * 2. ✅ Direct handler definitions: Using (c) => {} pattern allows Hono
+ *    to infer types from c.req.param(), c.env, etc.
+ * 
+ * 3. ✅ HTML Helper: Using html`` and raw() for safe HTML rendering
+ *    with automatic escaping
+ * 
+ * 4. ✅ Bindings: Access environment variables via c.env (DB, TRACKME_USER, etc.)
+ * 
+ * For larger apps, consider splitting routes using app.route():
+ * 
+ * Example:
+ *   // routes/admin.js
+ *   const admin = new Hono()
+ *     .get('/', (c) => c.json('admin home'))
+ *     .post('/users', (c) => c.json('create user'))
+ *   
+ *   // index.js
+ *   app.route('/admin', admin)
+ */
 const app = new Hono();
 
 // ============================================================================
@@ -834,7 +857,7 @@ app.post('/api/login', async (c) => {
     return c.html(html`<div class="error">Credenciales inválidas</div>`, 401);
   } catch (error) {
     if (error instanceof ValidationError) {
-      return c.html(html`<div class="error">${raw(escapeHtml(error.message))}</div>`, 400);
+      return c.html(html`<div class="error">${escapeHtml(error.message)}</div>`, 400);
     }
     console.error('Login error:', error);
     return c.html(html`<div class="error">Error en el servidor</div>`, 500);
@@ -862,9 +885,9 @@ app.get('/api/symptom-buttons', authMiddleware, async (c) => {
     const buttons = results.map(type => html`
       <button class="symptom-btn" 
               data-symptom-id="${type.id}" 
-              data-symptom-name="${escapeHtml(type.name)}"
+              data-symptom-name="${type.name}"
               onclick="openModal(this.dataset.symptomId, this.dataset.symptomName)">
-        ${raw(escapeHtml(type.name))}
+        ${type.name}
       </button>
     `).join('');
 
@@ -957,7 +980,7 @@ app.post('/api/log-symptom', authMiddleware, async (c) => {
     return c.html(html`<div class="success">Registrado correctamente ✓</div>`);
   } catch (error) {
     if (error instanceof ValidationError) {
-      return c.html(html`<div class="error">${raw(escapeHtml(error.message))}</div>`, 400);
+      return c.html(html`<div class="error">${escapeHtml(error.message)}</div>`, 400);
     }
     console.error('Log symptom error:', error);
     return c.html(html`<div class="error">Error al guardar el registro</div>`, 500);
@@ -1027,7 +1050,7 @@ app.post('/api/admin/add-symptom', authMiddleware, async (c) => {
     return c.html(html`<div class="success">Síntoma agregado correctamente ✓</div>`);
   } catch (error) {
     if (error instanceof ValidationError) {
-      return c.html(html`<div class="error">${raw(escapeHtml(error.message))}</div>`, 400);
+      return c.html(html`<div class="error">${escapeHtml(error.message)}</div>`, 400);
     }
     console.error('Add symptom error:', error);
     return c.html(html`<div class="error">Error al agregar síntoma</div>`, 500);
@@ -1054,7 +1077,7 @@ app.delete('/api/admin/symptom/:id', authMiddleware, async (c) => {
     return c.html(html`<div class="success">Síntoma eliminado correctamente ✓</div>`);
   } catch (error) {
     if (error instanceof ValidationError) {
-      return c.html(html`<div class="error">${raw(escapeHtml(error.message))}</div>`, 400);
+      return c.html(html`<div class="error">${escapeHtml(error.message)}</div>`, 400);
     }
     console.error('Delete symptom error:', error);
     return c.html(html`<div class="error">Error al eliminar síntoma</div>`, 500);
