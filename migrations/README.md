@@ -18,6 +18,14 @@ The migration system:
 
 **You don't need to manually run migrations in production** - they happen automatically!
 
+### Required GitHub Secrets
+
+For automated migrations to work, ensure these secrets are configured in your GitHub repository:
+- `CLOUDFLARE_API_TOKEN` - API token with Workers and D1 permissions
+- `CLOUDFLARE_ACCOUNT_ID` - Your Cloudflare account ID (required for D1 operations)
+
+Without these secrets properly configured, the migration step will fail during deployment.
+
 ## Manual Migration (if needed)
 
 ### For Production (Remote Database)
