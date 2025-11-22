@@ -382,12 +382,23 @@ El proyecto incluye dos workflows automáticos:
 
 ### Configurar Secrets en GitHub
 
-Para el despliegue automático, configura estos secrets en tu repositorio:
+Para el despliegue automático y las migraciones de base de datos, configura estos secrets en tu repositorio:
 
 1. Ve a Settings → Secrets and variables → Actions
 2. Agrega los siguientes secrets:
-   - `CLOUDFLARE_API_TOKEN`: Tu token de API de Cloudflare
-   - `CLOUDFLARE_ACCOUNT_ID`: Tu ID de cuenta de Cloudflare
+   - `CLOUDFLARE_API_TOKEN`: Tu token de API de Cloudflare (con permisos para Workers y D1)
+   - `CLOUDFLARE_ACCOUNT_ID`: Tu ID de cuenta de Cloudflare (requerido para ejecutar migraciones)
+
+**Para obtener tu Account ID:**
+```bash
+# Opción 1: Desde wrangler (requiere login)
+npx wrangler whoami
+
+# Opción 2: Desde el dashboard de Cloudflare
+# Ve a tu dashboard → Workers & Pages → En la URL verás tu Account ID
+```
+
+⚠️ **Importante**: El `CLOUDFLARE_ACCOUNT_ID` es **obligatorio** para que las migraciones de base de datos funcionen correctamente durante el deployment automático.
 
 ## 🎨 Mejoras de Developer Experience
 
