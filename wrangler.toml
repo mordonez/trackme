@@ -3,6 +3,12 @@ main = "src/index.js"
 compatibility_date = "2024-01-01"
 preview_urls = true
 
+# Static assets configuration
+# Serve static files from the public directory
+[assets]
+directory = "public"
+binding = "ASSETS"
+
 [[routes]]
 pattern = "trackme.miguelordonez.com"
 custom_domain = true
