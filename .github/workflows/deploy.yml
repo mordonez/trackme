@@ -28,6 +28,9 @@ jobs:
       - name: Build client components
         run: npm run build:client
 
+      - name: Install wrangler ci
+        run: npm install -g wrangler
+
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
