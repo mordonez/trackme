@@ -834,9 +834,9 @@ app.get('/api/symptom-buttons', authMiddleware, async (c) => {
     const buttons = results.map(type => html`
       <button class="symptom-btn" 
               data-symptom-id="${type.id}" 
-              data-symptom-name="${type.name}"
+              data-symptom-name="${escapeHtml(type.name)}"
               onclick="openModal(this.dataset.symptomId, this.dataset.symptomName)">
-        ${type.name}
+        ${escapeHtml(type.name)}
       </button>
     `).join('');
 
