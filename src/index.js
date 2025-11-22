@@ -5,6 +5,8 @@
 
 import { Hono } from 'hono';
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
+import { html, raw } from 'hono/html';
+import { basicAuth } from 'hono/basic-auth';
 
 // ============================================================================
 // CONFIGURATION
@@ -505,9 +507,79 @@ label {
 `;
 
 // ============================================================================
-// HONO APP
+// HTML COMPONENTS USING HONO HTML HELPER
 // ============================================================================
 
+// Base layout component
+const Layout = ({ title, children, includeModal = false }) => html`
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <style>${raw(CSS_STYLES)}</style>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body>
+    ${raw(children)}
+    ${includeModal ? raw(`
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h3 id="modal-title">Agregar Notas</h3>
+            <form id="modal-form" hx-post="/api/log-symptom" hx-target="#message" hx-swap="innerHTML">
+                <input type="hidden" name="type_id" id="modal-type-id">
+                <div class="form-group">
+                    <textarea name="notes" placeholder="Detalles opcionales..." maxlength="1000" rows="4"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit">Guardar</button>
+                    <button type="button" class="secondary" onclick="closeModal()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    function openModal(id, name) {
+        document.getElementById('modal-title').textContent = name;
+        document.getElementById('modal-type-id').value = id;
+        document.getElementById('modal').classList.add('show');
+    }
+    
+    function closeModal() {
+        document.getElementById('modal').classList.remove('show');
+        document.querySelector('#modal-form textarea').value = '';
+    }
+    
+    // Listen for successful symptom log
+    document.body.addEventListener('htmx:afterRequest', function(evt) {
+        if (evt.detail.successful && evt.detail.pathInfo.requestPath === '/api/log-symptom') {
+            closeModal();
+            htmx.trigger('#history', 'reload-history');
+        }
+    });
+    
+    // Close modal on escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeModal();
+    });
+    
+    // Close modal on background click
+    document.getElementById('modal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+    </script>
+    `) : ''}
+</body>
+</html>
+`;
+
+// ============================================================================
+// HONO APP WITH BINDINGS
+// ============================================================================
+
+// Define bindings types for better IDE support and type safety
 const app = new Hono();
 
 // ============================================================================
@@ -594,206 +666,144 @@ const authMiddleware = async (c, next) => {
 
 // Login page
 app.get('/login', (c) => {
-  return c.html(`<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - TrackMe</title>
-    <style>${CSS_STYLES}</style>
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-</head>
-<body>
-    <div class="container">
-        <div class="card" style="max-width: 400px; margin: 3rem auto;">
-            <h1>🩺 TrackMe</h1>
-            <p class="text-muted subtitle">Seguimiento simple de síntomas</p>
-            <div id="login-message"></div>
-            <form hx-post="/api/login" hx-target="#login-message" hx-swap="innerHTML">
-                <div class="form-group">
-                    <label>Usuario</label>
-                    <input type="text" name="username" placeholder="Tu usuario" autocomplete="username" maxlength="100" required>
-                </div>
-                <div class="form-group">
-                    <label>Contraseña</label>
-                    <input type="password" name="password" placeholder="Tu contraseña" autocomplete="current-password" maxlength="100" required>
-                </div>
-                <button type="submit" class="w-full">Entrar</button>
-            </form>
+  return c.html(
+    Layout({
+      title: 'Login - TrackMe',
+      children: `
+        <div class="container">
+            <div class="card" style="max-width: 400px; margin: 3rem auto;">
+                <h1>🩺 TrackMe</h1>
+                <p class="text-muted subtitle">Seguimiento simple de síntomas</p>
+                <div id="login-message"></div>
+                <form hx-post="/api/login" hx-target="#login-message" hx-swap="innerHTML">
+                    <div class="form-group">
+                        <label>Usuario</label>
+                        <input type="text" name="username" placeholder="Tu usuario" autocomplete="username" maxlength="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Contraseña</label>
+                        <input type="password" name="password" placeholder="Tu contraseña" autocomplete="current-password" maxlength="100" required>
+                    </div>
+                    <button type="submit" class="w-full">Entrar</button>
+                </form>
+            </div>
         </div>
-    </div>
-</body>
-</html>`);
+      `
+    })
+  );
 });
 
 // Main app page (protected)
 app.get('/', authMiddleware, async (c) => {
-  return c.html(`<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TrackMe</title>
-    <style>${CSS_STYLES}</style>
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-</head>
-<body>
-    <div class="container">
-        <div class="header-section">
-            <h1>🩺 TrackMe</h1>
-            <p class="text-muted">Registra tus síntomas</p>
-        </div>
+  return c.html(
+    Layout({
+      title: 'TrackMe',
+      includeModal: true,
+      children: `
+        <div class="container">
+            <div class="header-section">
+                <h1>🩺 TrackMe</h1>
+                <p class="text-muted">Registra tus síntomas</p>
+            </div>
 
-        <div class="top-nav">
-            <a href="/admin" class="btn outline">⚙️ Admin</a>
-            <form hx-post="/api/logout" hx-swap="none" style="display: inline; flex: 1;">
-                <button type="submit" class="outline secondary w-full">Salir</button>
-            </form>
-        </div>
+            <div class="top-nav">
+                <a href="/admin" class="btn outline">⚙️ Admin</a>
+                <form hx-post="/api/logout" hx-swap="none" style="display: inline; flex: 1;">
+                    <button type="submit" class="outline secondary w-full">Salir</button>
+                </form>
+            </div>
 
-        <div id="message"></div>
+            <div id="message"></div>
 
-        <div>
-            <h2>Registrar Síntoma</h2>
-            <div id="symptom-buttons" 
-                 class="symptom-grid" 
-                 hx-get="/api/symptom-buttons" 
-                 hx-trigger="load"
-                 hx-swap="innerHTML">
-                <div class="loading">Cargando...</div>
+            <div>
+                <h2>Registrar Síntoma</h2>
+                <div id="symptom-buttons" 
+                     class="symptom-grid" 
+                     hx-get="/api/symptom-buttons" 
+                     hx-trigger="load"
+                     hx-swap="innerHTML">
+                    <div class="loading">Cargando...</div>
+                </div>
+            </div>
+
+            <div>
+                <h2>Historial (14 días)</h2>
+                <div id="history" 
+                     hx-get="/api/history-items" 
+                     hx-trigger="load, reload-history from:body"
+                     hx-swap="innerHTML">
+                    <div class="loading">Cargando...</div>
+                </div>
             </div>
         </div>
-
-        <div>
-            <h2>Historial (14 días)</h2>
-            <div id="history" 
-                 hx-get="/api/history-items" 
-                 hx-trigger="load, reload-history from:body"
-                 hx-swap="innerHTML">
-                <div class="loading">Cargando...</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal for notes -->
-    <div id="modal" class="modal">
-        <div class="modal-content">
-            <h3 id="modal-title">Agregar Notas</h3>
-            <form id="modal-form" hx-post="/api/log-symptom" hx-target="#message" hx-swap="innerHTML">
-                <input type="hidden" name="type_id" id="modal-type-id">
-                <div class="form-group">
-                    <textarea name="notes" placeholder="Detalles opcionales..." maxlength="1000" rows="4"></textarea>
-                </div>
-                <div class="modal-actions">
-                    <button type="submit">Guardar</button>
-                    <button type="button" class="secondary" onclick="closeModal()">Cancelar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script>
-    function openModal(id, name) {
-        document.getElementById('modal-title').textContent = name;
-        document.getElementById('modal-type-id').value = id;
-        document.getElementById('modal').classList.add('show');
-    }
-    
-    function closeModal() {
-        document.getElementById('modal').classList.remove('show');
-        document.querySelector('#modal-form textarea').value = '';
-    }
-    
-    // Listen for successful symptom log
-    document.body.addEventListener('htmx:afterRequest', function(evt) {
-        if (evt.detail.successful && evt.detail.pathInfo.requestPath === '/api/log-symptom') {
-            closeModal();
-            htmx.trigger('#history', 'reload-history');
-        }
-    });
-    
-    // Close modal on escape
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeModal();
-    });
-    
-    // Close modal on background click
-    document.getElementById('modal').addEventListener('click', function(e) {
-        if (e.target === this) closeModal();
-    });
-    </script>
-</body>
-</html>`);
+      `
+    })
+  );
 });
 
 // Admin page (protected)
 app.get('/admin', authMiddleware, (c) => {
-  return c.html(`<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - TrackMe</title>
-    <style>${CSS_STYLES}</style>
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-</head>
-<body>
-    <div class="container">
-        <div class="header-section">
-            <h1>⚙️ Panel Admin</h1>
-            <p class="text-muted">Gestiona los síntomas</p>
-        </div>
+  return c.html(
+    Layout({
+      title: 'Admin - TrackMe',
+      children: `
+        <div class="container">
+            <div class="header-section">
+                <h1>⚙️ Panel Admin</h1>
+                <p class="text-muted">Gestiona los síntomas</p>
+            </div>
 
-        <div class="top-nav">
-            <a href="/" class="btn outline">← Volver</a>
-            <form hx-post="/api/logout" hx-swap="none" style="display: inline; flex: 1;">
-                <button type="submit" class="outline secondary w-full">Salir</button>
-            </form>
-        </div>
+            <div class="top-nav">
+                <a href="/" class="btn outline">← Volver</a>
+                <form hx-post="/api/logout" hx-swap="none" style="display: inline; flex: 1;">
+                    <button type="submit" class="outline secondary w-full">Salir</button>
+                </form>
+            </div>
 
-        <div id="message"></div>
+            <div id="message"></div>
 
-        <div class="card">
-            <h2>Agregar Síntoma</h2>
-            <form hx-post="/api/admin/add-symptom" 
-                  hx-target="#message" 
-                  hx-swap="innerHTML">
-                <div class="form-group">
-                    <input type="text" name="name" placeholder="Ej: Dolor de cabeza" required maxlength="100">
+            <div class="card">
+                <h2>Agregar Síntoma</h2>
+                <form hx-post="/api/admin/add-symptom" 
+                      hx-target="#message" 
+                      hx-swap="innerHTML">
+                    <div class="form-group">
+                        <input type="text" name="name" placeholder="Ej: Dolor de cabeza" required maxlength="100">
+                    </div>
+                    <button type="submit">Agregar</button>
+                </form>
+            </div>
+
+            <div>
+                <h2>Lista de Síntomas</h2>
+                <div id="symptom-list" 
+                     class="symptom-list"
+                     hx-get="/api/admin/symptom-list" 
+                     hx-trigger="load, reload-list from:body"
+                     hx-swap="innerHTML">
+                    <div class="loading">Cargando...</div>
                 </div>
-                <button type="submit">Agregar</button>
-            </form>
-        </div>
-
-        <div>
-            <h2>Lista de Síntomas</h2>
-            <div id="symptom-list" 
-                 class="symptom-list"
-                 hx-get="/api/admin/symptom-list" 
-                 hx-trigger="load, reload-list from:body"
-                 hx-swap="innerHTML">
-                <div class="loading">Cargando...</div>
             </div>
         </div>
-    </div>
 
-    <script>
-    // Reload list after add/delete
-    document.body.addEventListener('htmx:afterRequest', function(evt) {
-        if (evt.detail.successful) {
-            const path = evt.detail.pathInfo.requestPath;
-            if (path === '/api/admin/add-symptom' || path.startsWith('/api/admin/symptom/')) {
-                htmx.trigger('#symptom-list', 'reload-list');
-                // Clear form if add
-                if (path === '/api/admin/add-symptom') {
-                    evt.detail.elt.reset();
+        <script>
+        // Reload list after add/delete
+        document.body.addEventListener('htmx:afterRequest', function(evt) {
+            if (evt.detail.successful) {
+                const path = evt.detail.pathInfo.requestPath;
+                if (path === '/api/admin/add-symptom' || path.startsWith('/api/admin/symptom/')) {
+                    htmx.trigger('#symptom-list', 'reload-list');
+                    // Clear form if add
+                    if (path === '/api/admin/add-symptom') {
+                        evt.detail.elt.reset();
+                    }
                 }
             }
-        }
-    });
-    </script>
-</body>
-</html>`);
+        });
+        </script>
+      `
+    })
+  );
 });
 
 // ============================================================================
@@ -817,17 +827,17 @@ app.post('/api/login', async (c) => {
       });
       
       c.header('HX-Redirect', '/');
-      return c.html('<div class="success">Login exitoso, redirigiendo...</div>');
+      return c.html(html`<div class="success">Login exitoso, redirigiendo...</div>`);
     }
 
     await new Promise(resolve => setTimeout(resolve, 100));
-    return c.html('<div class="error">Credenciales inválidas</div>', 401);
+    return c.html(html`<div class="error">Credenciales inválidas</div>`, 401);
   } catch (error) {
     if (error instanceof ValidationError) {
-      return c.html(`<div class="error">${escapeHtml(error.message)}</div>`, 400);
+      return c.html(html`<div class="error">${raw(escapeHtml(error.message))}</div>`, 400);
     }
     console.error('Login error:', error);
-    return c.html('<div class="error">Error en el servidor</div>', 500);
+    return c.html(html`<div class="error">Error en el servidor</div>`, 500);
   }
 });
 
@@ -846,22 +856,22 @@ app.get('/api/symptom-buttons', authMiddleware, async (c) => {
     ).all();
 
     if (!results || results.length === 0) {
-      return c.html('<p style="color: #999;">No hay síntomas configurados. Ve al Panel Admin para agregar algunos.</p>');
+      return c.html(html`<p style="color: #999;">No hay síntomas configurados. Ve al Panel Admin para agregar algunos.</p>`);
     }
 
-    const buttons = results.map(type => 
-      `<button class="symptom-btn" 
+    const buttons = results.map(type => html`
+      <button class="symptom-btn" 
               data-symptom-id="${type.id}" 
               data-symptom-name="${escapeHtml(type.name)}"
               onclick="openModal(this.dataset.symptomId, this.dataset.symptomName)">
-        ${escapeHtml(type.name)}
-      </button>`
-    ).join('');
+        ${raw(escapeHtml(type.name))}
+      </button>
+    `).join('');
 
-    return c.html(buttons);
+    return c.html(raw(buttons));
   } catch (error) {
     console.error('Get symptom buttons error:', error);
-    return c.html('<p class="error">Error al cargar síntomas</p>', 500);
+    return c.html(html`<p class="error">Error al cargar síntomas</p>`, 500);
   }
 });
 
@@ -887,7 +897,7 @@ app.get('/api/history-items', authMiddleware, async (c) => {
     `).bind(dateLimit).all();
 
     if (!results || results.length === 0) {
-      return c.html('<p style="color: #999;">No hay registros aún</p>');
+      return c.html(html`<p style="color: #999;">No hay registros aún</p>`);
     }
 
     const items = results.map(log => {
@@ -925,10 +935,10 @@ app.get('/api/history-items', authMiddleware, async (c) => {
       `;
     }).join('');
 
-    return c.html(items);
+    return c.html(raw(items));
   } catch (error) {
     console.error('Get history items error:', error);
-    return c.html('<p class="error">Error al cargar historial</p>', 500);
+    return c.html(html`<p class="error">Error al cargar historial</p>`, 500);
   }
 });
 
@@ -944,13 +954,13 @@ app.post('/api/log-symptom', authMiddleware, async (c) => {
       'INSERT INTO symptom_logs (type_id, notes, date) VALUES (?, ?, ?)'
     ).bind(type_id, notes, today).run();
 
-    return c.html('<div class="success">Registrado correctamente ✓</div>');
+    return c.html(html`<div class="success">Registrado correctamente ✓</div>`);
   } catch (error) {
     if (error instanceof ValidationError) {
-      return c.html(`<div class="error">${escapeHtml(error.message)}</div>`, 400);
+      return c.html(html`<div class="error">${raw(escapeHtml(error.message))}</div>`, 400);
     }
     console.error('Log symptom error:', error);
-    return c.html('<div class="error">Error al guardar el registro</div>', 500);
+    return c.html(html`<div class="error">Error al guardar el registro</div>`, 500);
   }
 });
 
@@ -962,7 +972,7 @@ app.get('/api/admin/symptom-list', authMiddleware, async (c) => {
     ).all();
 
     if (!results || results.length === 0) {
-      return c.html('<p style="color: #999; text-align: center; padding: 20px;">No hay síntomas configurados</p>');
+      return c.html(html`<p style="color: #999; text-align: center; padding: 20px;">No hay síntomas configurados</p>`);
     }
 
     const items = results.map(type => {
@@ -989,10 +999,10 @@ app.get('/api/admin/symptom-list', authMiddleware, async (c) => {
       `;
     }).join('');
 
-    return c.html(items);
+    return c.html(raw(items));
   } catch (error) {
     console.error('Get symptom list error:', error);
-    return c.html('<p class="error">Error al cargar síntomas</p>', 500);
+    return c.html(html`<p class="error">Error al cargar síntomas</p>`, 500);
   }
 });
 
@@ -1007,20 +1017,20 @@ app.post('/api/admin/add-symptom', authMiddleware, async (c) => {
     ).bind(name).first();
 
     if (existing) {
-      return c.html('<div class="error">Este síntoma ya existe</div>', 400);
+      return c.html(html`<div class="error">Este síntoma ya existe</div>`, 400);
     }
 
     await c.env.DB.prepare(
       'INSERT INTO symptom_types (name) VALUES (?)'
     ).bind(name).run();
 
-    return c.html('<div class="success">Síntoma agregado correctamente ✓</div>');
+    return c.html(html`<div class="success">Síntoma agregado correctamente ✓</div>`);
   } catch (error) {
     if (error instanceof ValidationError) {
-      return c.html(`<div class="error">${escapeHtml(error.message)}</div>`, 400);
+      return c.html(html`<div class="error">${raw(escapeHtml(error.message))}</div>`, 400);
     }
     console.error('Add symptom error:', error);
-    return c.html('<div class="error">Error al agregar síntoma</div>', 500);
+    return c.html(html`<div class="error">Error al agregar síntoma</div>`, 500);
   }
 });
 
@@ -1034,20 +1044,20 @@ app.delete('/api/admin/symptom/:id', authMiddleware, async (c) => {
     ).bind(id).first();
 
     if (!symptom) {
-      return c.html('<div class="error">Síntoma no encontrado</div>', 404);
+      return c.html(html`<div class="error">Síntoma no encontrado</div>`, 404);
     }
 
     await c.env.DB.prepare(
       'DELETE FROM symptom_types WHERE id = ?'
     ).bind(id).run();
 
-    return c.html('<div class="success">Síntoma eliminado correctamente ✓</div>');
+    return c.html(html`<div class="success">Síntoma eliminado correctamente ✓</div>`);
   } catch (error) {
     if (error instanceof ValidationError) {
-      return c.html(`<div class="error">${escapeHtml(error.message)}</div>`, 400);
+      return c.html(html`<div class="error">${raw(escapeHtml(error.message))}</div>`, 400);
     }
     console.error('Delete symptom error:', error);
-    return c.html('<div class="error">Error al eliminar síntoma</div>', 500);
+    return c.html(html`<div class="error">Error al eliminar síntoma</div>`, 500);
   }
 });
 
