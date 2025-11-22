@@ -6,6 +6,10 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
+    "test": "vitest",
+    "test:ci": "vitest run",
+    "build:client": "vite build",
+    "build": "npm run build:client",
     "db:init": "wrangler d1 execute trackme-db --local --file=./schema.sql",
     "db:init:remote": "wrangler d1 execute trackme-db --remote --file=./schema.sql",
     "db:query": "wrangler d1 execute trackme-db --local --command",
@@ -22,9 +26,18 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.10.10",
+    "@cloudflare/workers-types": "^4.20251121.0",
+    "@types/node": "^24.10.1",
+    "esbuild": "^0.27.0",
+    "hono": "^4.10.6",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.4",
+    "vitest": "^3.2.0",
     "wrangler": "^4.0.0"
   },
   "dependencies": {
-    "hono": "^4.10.6"
+    "@hono/zod-validator": "^0.7.5",
+    "zod": "^4.1.12"
   }
 }

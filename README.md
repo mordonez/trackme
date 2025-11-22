@@ -12,6 +12,8 @@ Una aplicación web minimalista para trackear síntomas o eventos (dolor de cabe
 - **Serverless**: 100% en Cloudflare Workers (sin servidor tradicional)
 - **Base de datos**: SQLite con Cloudflare D1
 - **Interactividad moderna**: UI dinámica sin recargas de página usando HTMX
+- **Testing**: Suite de pruebas con Vitest y Cloudflare Workers pool
+- **CI/CD**: Despliegue automático con GitHub Actions
 
 ## 🚀 Stack Tecnológico
 
@@ -19,19 +21,29 @@ Una aplicación web minimalista para trackear síntomas o eventos (dolor de cabe
 - **Base de datos**: Cloudflare D1 (SQLite) con integración nativa
 - **Frontend**: HTMX para interactividad sin JavaScript pesado
 - **Arquitectura**: Server-Side Rendering con actualizaciones parciales
+- **Testing**: Vitest con @cloudflare/vitest-pool-workers
+- **CI/CD**: GitHub Actions para testing y deployment automático
 
 ## 📁 Estructura del Proyecto
 
 ```
 trackme/
+├── .github/
+│   └── workflows/
+│       ├── deploy.yml     # Workflow de despliegue automático
+│       └── test.yml       # Workflow de pruebas automáticas
 ├── src/
-│   └── index.js          # Aplicación Hono principal
-├── schema.sql            # Schema de la base de datos
-├── wrangler.toml         # Configuración de Cloudflare Workers (no en git)
-├── wrangler.toml.example # Plantilla de configuración
-├── .dev.vars             # Variables locales (no en git)
-├── package.json          # Dependencias
-└── README.md            # Este archivo
+│   └── index.js           # Aplicación Hono principal
+├── test/
+│   └── index.test.js      # Tests con Vitest
+├── public/                # Archivos estáticos (CSS, JS, imágenes)
+├── schema.sql             # Schema de la base de datos
+├── wrangler.toml          # Configuración de Cloudflare Workers (no en git)
+├── wrangler.toml.example  # Plantilla de configuración
+├── vitest.config.js       # Configuración de Vitest
+├── .dev.vars              # Variables locales (no en git)
+├── package.json           # Dependencias
+└── README.md             # Este archivo
 ```
 
 ## 🛠️ Configuración Inicial
@@ -206,8 +218,16 @@ wrangler secret put TRACKME_PASSWORD
 
 ### Desarrollo y Despliegue
 ```bash
-npm run dev       # Desarrollo local
-npm run deploy    # Desplegar a producción
+npm run dev            # Desarrollo local
+npm run build          # Compilar client components
+npm run build:client   # Compilar solo client components
+npm run deploy         # Desplegar a producción
+```
+
+### Testing
+```bash
+npm test          # Ejecutar tests en modo watch
+npm run test:ci   # Ejecutar tests una vez (para CI/CD)
 ```
 
 ### Base de Datos
@@ -289,6 +309,125 @@ app.get('/tu-ruta', authMiddleware, async (c) => {
 ### Error: "wrangler.toml not found"
 - Copia la plantilla: `cp wrangler.toml.example wrangler.toml`
 - Actualiza el `database_id` con tu valor
+
+### Los cambios no se reflejan en desarrollo
+- Detén el servidor (`Ctrl+C`) y vuelve a ejecutar `npm run dev`
+
+## 🧪 Testing y Calidad de Código
+
+### Ejecutar Tests
+
+```bash
+# Modo watch (desarrollo)
+npm test
+
+# Una vez (CI/CD)
+npm run test:ci
+```
+
+### Cobertura de Tests
+
+Los tests incluyen:
+- ✅ Renderizado de páginas públicas (login)
+- ✅ Validación de autenticación
+- ✅ Protección contra inyección XSS
+- ✅ Manejo de errores
+
+### CI/CD con GitHub Actions
+
+El proyecto incluye dos workflows automáticos:
+
+1. **Test Workflow** (`.github/workflows/test.yml`)
+   - Se ejecuta en cada push y pull request
+   - Valida que todos los tests pasen antes de merge
+
+2. **Deploy Workflow** (`.github/workflows/deploy.yml`)
+   - Se ejecuta automáticamente en push a `main`
+   - Despliega a Cloudflare Workers
+   - Requiere configurar secrets: `CLOUDFLARE_API_TOKEN` y `CLOUDFLARE_ACCOUNT_ID`
+
+### Configurar Secrets en GitHub
+
+Para el despliegue automático, configura estos secrets en tu repositorio:
+
+1. Ve a Settings → Secrets and variables → Actions
+2. Agrega los siguientes secrets:
+   - `CLOUDFLARE_API_TOKEN`: Tu token de API de Cloudflare
+   - `CLOUDFLARE_ACCOUNT_ID`: Tu ID de cuenta de Cloudflare
+
+## 🎨 Mejoras de Developer Experience
+
+Este proyecto sigue las mejores prácticas de Hono y Cloudflare Workers:
+
+### 1. HTML Helper de Hono
+- Usa `html` y `raw` template literals para construir HTML
+- Componentes funcionales reutilizables (ej: `Layout`)
+- Escaping automático de HTML para prevenir XSS
+
+```javascript
+import { html, raw } from 'hono/html';
+
+const Layout = ({ title, children }) => html`
+<!DOCTYPE html>
+<html>
+  <head><title>${title}</title></head>
+  <body>${raw(children)}</body>
+</html>
+`;
+```
+
+### 2. Bindings y Variables de Entorno
+- Acceso tipado a variables de entorno mediante `c.env`
+- Uso de bindings para D1, KV, R2, etc.
+- Configuración centralizada en `wrangler.toml`
+
+```javascript
+// Acceso a variables de entorno
+const username = c.env.TRACKME_USER;
+const db = c.env.DB;
+```
+
+### 3. Static Assets
+- Soporte para archivos estáticos desde el directorio `public/`
+- Configurado en `wrangler.toml` con el binding `ASSETS`
+- Ideal para CSS, JavaScript, imágenes, etc.
+
+### 4. Testing con Vitest
+- Suite de tests usando `@cloudflare/vitest-pool-workers`
+- Pruebas en un entorno aislado similar a producción
+- Integración con GitHub Actions para CI/CD
+
+### 5. Middleware Modular
+- Middleware de seguridad para headers HTTP
+- Middleware de autenticación reutilizable
+- Inicialización automática de base de datos
+
+### 6. Client Components (hono/jsx/dom)
+- Componentes del lado del cliente usando sintaxis React-like
+- Bundle extremadamente pequeño: **8.69 KB gzipped** (vs 47.8 KB de React)
+- Soporte para hooks: `useState`, `useEffect`, `useRef`, etc.
+- Modal interactivo y manejo de eventos con client components
+- Build automático antes de deployment
+
+```jsx
+// src/client/index.jsx
+import { useState, useEffect } from 'hono/jsx'
+import { render } from 'hono/jsx/dom'
+
+function SymptomModal() {
+  const [isOpen, setIsOpen] = useState(false)
+  // ... React-like component logic
+  return <div className="modal">{/* JSX */}</div>
+}
+
+render(<SymptomModal />, document.getElementById('modal-root'))
+```
+
+**Características del cliente:**
+- ⚡ Ultraligero: solo 26KB sin comprimir, 8.69 KB con gzip
+- 🎯 API compatible con React hooks
+- 🔥 Rendimiento superior a React para casos de uso simples
+- 🛠️ Integración perfecta con HTMX
 
 ### Los cambios no se reflejan en desarrollo
 - Detén el servidor (`Ctrl+C`) y vuelve a ejecutar `npm run dev`
