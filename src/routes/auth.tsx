@@ -1,8 +1,9 @@
 /** @jsxImportSource hono/jsx */
 
 import { Hono } from 'hono'
+import { zValidator } from '@hono/zod-validator'
 import type { Bindings } from '../lib/types'
-import { validateCredentials, ValidationError } from '../lib/validation'
+import { credentialsSchema } from '../lib/schemas'
 import { setAuthCookie, clearAuthCookie } from '../lib/auth'
 import { Layout, FormGroup } from '../components/Layout'
 
@@ -33,26 +34,17 @@ auth.get('/login', (c) => {
   )
 })
 
-auth.post('/api/login', async (c) => {
-  try {
-    const body = await c.req.parseBody()
-    const { username, password } = validateCredentials(body.username, body.password)
+auth.post('/api/login', zValidator('form', credentialsSchema), async (c) => {
+  const { username, password } = c.req.valid('form')
 
-    if (username === c.env.TRACKME_USER && password === c.env.TRACKME_PASSWORD) {
-      setAuthCookie(c, username, password)
-      c.header('HX-Redirect', '/')
-      return c.html(<div class="success">Login exitoso, redirigiendo...</div>)
-    }
-
-    await new Promise(resolve => setTimeout(resolve, 100))
-    return c.html(<div class="error">Credenciales inválidas</div>, 401)
-  } catch (error) {
-    if (error instanceof ValidationError) {
-      return c.html(<div class="error">{error.message}</div>, 400)
-    }
-    console.error('Login error:', error)
-    return c.html(<div class="error">Error en el servidor</div>, 500)
+  if (username === c.env.TRACKME_USER && password === c.env.TRACKME_PASSWORD) {
+    setAuthCookie(c, username, password)
+    c.header('HX-Redirect', '/')
+    return c.html(<div class="success">Login exitoso, redirigiendo...</div>)
   }
+
+  await new Promise(resolve => setTimeout(resolve, 100))
+  return c.html(<div class="error">Credenciales inválidas</div>, 401)
 })
 
 auth.post('/api/logout', (c) => {

@@ -1,10 +1,11 @@
 /** @jsxImportSource hono/jsx */
 
 import { Hono } from 'hono'
+import { zValidator } from '@hono/zod-validator'
 import type { Bindings } from '../lib/types'
 import { CONFIG } from '../lib/types'
 import { authMiddleware } from '../lib/middleware'
-import { validateSymptomName, validateNotes, validateId, ValidationError } from '../lib/validation'
+import { symptomNameSchema, logSymptomSchema, symptomIdSchema } from '../lib/schemas'
 import { formatRelativeDate, formatTime } from '../lib/utils'
 
 const api = new Hono<{ Bindings: Bindings }>()
@@ -67,25 +68,15 @@ api.get('/history-items', authMiddleware, async (c) => {
 })
 
 // Log symptom
-api.post('/log-symptom', authMiddleware, async (c) => {
-  try {
-    const body = await c.req.parseBody()
-    const type_id = validateId(body.type_id)
-    const notes = validateNotes(body.notes)
-    const today = new Date().toISOString().split('T')[0]
+api.post('/log-symptom', authMiddleware, zValidator('form', logSymptomSchema), async (c) => {
+  const { type_id, notes } = c.req.valid('form')
+  const today = new Date().toISOString().split('T')[0]
 
-    await c.env.DB.prepare(
-      'INSERT INTO symptom_logs (type_id, notes, date) VALUES (?, ?, ?)'
-    ).bind(type_id, notes, today).run()
+  await c.env.DB.prepare(
+    'INSERT INTO symptom_logs (type_id, notes, date) VALUES (?, ?, ?)'
+  ).bind(type_id, notes, today).run()
 
-    return c.html(<div class="success">Registrado correctamente ✓</div>)
-  } catch (error) {
-    if (error instanceof ValidationError) {
-      return c.html(<div class="error">{error.message}</div>, 400)
-    }
-    console.error('Log symptom error:', error)
-    return c.html(<div class="error">Error al guardar el registro</div>, 500)
-  }
+  return c.html(<div class="success">Registrado correctamente ✓</div>)
 })
 
 // Get symptom list (admin)
@@ -128,52 +119,35 @@ api.get('/admin/symptom-list', authMiddleware, async (c) => {
 })
 
 // Add symptom (admin)
-api.post('/admin/add-symptom', authMiddleware, async (c) => {
-  try {
-    const body = await c.req.parseBody()
-    const name = validateSymptomName(body.name)
+api.post('/admin/add-symptom', authMiddleware, zValidator('form', symptomNameSchema), async (c) => {
+  const { name } = c.req.valid('form')
 
-    const existing = await c.env.DB.prepare(
-      'SELECT id FROM symptom_types WHERE LOWER(name) = LOWER(?)'
-    ).bind(name).first()
+  const existing = await c.env.DB.prepare(
+    'SELECT id FROM symptom_types WHERE LOWER(name) = LOWER(?)'
+  ).bind(name).first()
 
-    if (existing) {
-      return c.html(<div class="error">Este síntoma ya existe</div>, 400)
-    }
-
-    await c.env.DB.prepare('INSERT INTO symptom_types (name) VALUES (?)').bind(name).run()
-
-    return c.html(<div class="success">Síntoma agregado correctamente ✓</div>)
-  } catch (error) {
-    if (error instanceof ValidationError) {
-      return c.html(<div class="error">{error.message}</div>, 400)
-    }
-    console.error('Add symptom error:', error)
-    return c.html(<div class="error">Error al agregar síntoma</div>, 500)
+  if (existing) {
+    return c.html(<div class="error">Este síntoma ya existe</div>, 400)
   }
+
+  await c.env.DB.prepare('INSERT INTO symptom_types (name) VALUES (?)').bind(name).run()
+
+  return c.html(<div class="success">Síntoma agregado correctamente ✓</div>)
 })
 
 // Delete symptom (admin)
-api.delete('/admin/symptom/:id', authMiddleware, async (c) => {
-  try {
-    const id = validateId(c.req.param('id'))
+api.delete('/admin/symptom/:id', authMiddleware, zValidator('param', symptomIdSchema), async (c) => {
+  const { id } = c.req.valid('param')
 
-    const symptom = await c.env.DB.prepare('SELECT id FROM symptom_types WHERE id = ?').bind(id).first()
+  const symptom = await c.env.DB.prepare('SELECT id FROM symptom_types WHERE id = ?').bind(id).first()
 
-    if (!symptom) {
-      return c.html(<div class="error">Síntoma no encontrado</div>, 404)
-    }
-
-    await c.env.DB.prepare('DELETE FROM symptom_types WHERE id = ?').bind(id).run()
-
-    return c.html(<div class="success">Síntoma eliminado correctamente ✓</div>)
-  } catch (error) {
-    if (error instanceof ValidationError) {
-      return c.html(<div class="error">{error.message}</div>, 400)
-    }
-    console.error('Delete symptom error:', error)
-    return c.html(<div class="error">Error al eliminar síntoma</div>, 500)
+  if (!symptom) {
+    return c.html(<div class="error">Síntoma no encontrado</div>, 404)
   }
+
+  await c.env.DB.prepare('DELETE FROM symptom_types WHERE id = ?').bind(id).run()
+
+  return c.html(<div class="success">Síntoma eliminado correctamente ✓</div>)
 })
 
 export default api
