@@ -12,6 +12,7 @@ function SymptomModal() {
   const [symptomId, setSymptomId] = useState(null)
   const [symptomName, setSymptomName] = useState('')
   const [notes, setNotes] = useState('')
+  const [medicationTaken, setMedicationTaken] = useState(false)
 
   // Global function to open modal (called from HTMX buttons)
   useEffect(() => {
@@ -51,6 +52,7 @@ function SymptomModal() {
   const closeModal = () => {
     setIsOpen(false)
     setNotes('')
+    setMedicationTaken(false)
   }
 
   const handleBackdropClick = (e) => {
@@ -80,6 +82,17 @@ function SymptomModal() {
               value={notes}
               onInput={(e) => setNotes(e.target.value)}
             />
+          </div>
+          <div className="form-group checkbox-group">
+            <label>
+              <input 
+                type="checkbox" 
+                name="medication_taken"
+                checked={medicationTaken}
+                onChange={(e) => setMedicationTaken(e.target.checked)}
+              />
+              <span>¿Tomé medicación?</span>
+            </label>
           </div>
           <div className="modal-actions">
             <button type="submit">Guardar</button>

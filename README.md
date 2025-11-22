@@ -109,6 +109,35 @@ npm run db:init:remote
 
 Este comando ejecutará el schema en la base de datos D1 de Cloudflare en producción.
 
+#### Migraciones para Bases de Datos Existentes
+
+**Las migraciones se ejecutan automáticamente en producción** cuando haces push a `main`. El sistema:
+- Detecta migraciones pendientes
+- Las ejecuta en orden
+- Registra cuáles han sido aplicadas
+
+Para desarrollo local, aplica migraciones manualmente:
+
+```bash
+# Ver todas las migraciones disponibles
+ls migrations/
+
+# Aplicar una migración específica en local
+npx wrangler d1 execute trackme-db --local --file=./migrations/XXX_migration_name.sql
+```
+
+Ejemplo con la migración actual:
+```bash
+npx wrangler d1 execute trackme-db --local --file=./migrations/001_add_medication_taken.sql
+```
+
+⚠️ **Importante**: 
+- Las migraciones en **producción son automáticas** (se ejecutan durante el deployment)
+- Para **desarrollo local**, debes ejecutarlas manualmente
+- Las migraciones son para bases de datos existentes. Si es una instalación nueva, usa `npm run db:init` (local) o `npm run db:init:remote` (producción)
+
+Consulta `migrations/README.md` para más detalles sobre cómo funcionan las migraciones.
+
 ### 6. Configurar Credenciales de Admin
 
 #### Para Desarrollo Local
@@ -232,9 +261,14 @@ npm run test:ci   # Ejecutar tests una vez (para CI/CD)
 
 ### Base de Datos
 ```bash
-# Inicializar schema
+# Inicializar schema (solo para bases de datos nuevas)
 npm run db:init          # Inicializar DB local (desarrollo)
 npm run db:init:remote   # Inicializar DB remota (producción)
+
+# Migraciones (para bases de datos existentes)
+# Ver migrations/README.md para más detalles y lista completa
+npx wrangler d1 execute trackme-db --local --file=./migrations/XXX_migration_name.sql   # Migración local
+npx wrangler d1 execute trackme-db --remote --file=./migrations/XXX_migration_name.sql  # Migración producción
 
 # Ejecutar consultas SQL
 npm run db:query "SELECT * FROM symptoms"         # Consulta local
