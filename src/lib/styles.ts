@@ -150,6 +150,31 @@ label {
   margin-bottom: 1rem;
 }
 
+.checkbox-group {
+  display: flex;
+  align-items: center;
+}
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin-bottom: 0;
+  user-select: none;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: auto;
+  margin-right: 0.5rem;
+  cursor: pointer;
+  accent-color: var(--color-primary);
+}
+
+.checkbox-group span {
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
 .symptom-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -226,6 +251,14 @@ label {
   font-weight: 600;
   font-size: 1rem;
   margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.medication-badge {
+  font-size: 1.125rem;
+  line-height: 1;
 }
 
 .history-notes {

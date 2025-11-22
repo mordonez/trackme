@@ -41,7 +41,7 @@ api.get('/history-items', authMiddleware, async (c) => {
   const dateLimit = daysAgo.toISOString().split('T')[0]
 
   const { results } = await c.env.DB.prepare(`
-    SELECT sl.id, sl.notes, sl.date, sl.timestamp, st.name as symptom_name
+    SELECT sl.id, sl.notes, sl.medication_taken, sl.date, sl.timestamp, st.name as symptom_name
     FROM symptom_logs sl
     JOIN symptom_types st ON sl.type_id = st.id
     WHERE sl.date >= ?
@@ -58,7 +58,10 @@ api.get('/history-items', authMiddleware, async (c) => {
       {results.map((log: any) => (
         <div class="history-item">
           <div class="history-date">{formatRelativeDate(log.date)}</div>
-          <div class="history-type">{log.symptom_name}</div>
+          <div class="history-type">
+            {log.symptom_name}
+            {log.medication_taken === 1 && <span class="medication-badge" title="Medicación tomada">💊</span>}
+          </div>
           {log.notes && <div class="history-notes">{log.notes}</div>}
           <div class="history-time">{formatTime(log.timestamp)}</div>
         </div>
@@ -69,12 +72,12 @@ api.get('/history-items', authMiddleware, async (c) => {
 
 // Log symptom
 api.post('/log-symptom', authMiddleware, zValidator('form', logSymptomSchema), async (c) => {
-  const { type_id, notes } = c.req.valid('form')
+  const { type_id, notes, medication_taken } = c.req.valid('form')
   const today = new Date().toISOString().split('T')[0]
 
   await c.env.DB.prepare(
-    'INSERT INTO symptom_logs (type_id, notes, date) VALUES (?, ?, ?)'
-  ).bind(type_id, notes, today).run()
+    'INSERT INTO symptom_logs (type_id, notes, medication_taken, date) VALUES (?, ?, ?, ?)'
+  ).bind(type_id, notes, medication_taken, today).run()
 
   return c.html(<div class="success">Registrado correctamente ✓</div>)
 })

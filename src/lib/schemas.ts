@@ -34,6 +34,9 @@ export const logSymptomSchema = z.object({
     .transform(val => val ? val.replace(/\0/g, '').trim() : null)
     .nullable()
     .optional(),
+  medication_taken: z.string()
+    .optional()
+    .transform(val => val === 'on' ? 1 : 0),
 })
 
 export const symptomIdSchema = z.object({
