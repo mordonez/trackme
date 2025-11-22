@@ -111,22 +111,30 @@ Este comando ejecutará el schema en la base de datos D1 de Cloudflare en produc
 
 #### Migraciones para Bases de Datos Existentes
 
-Si ya tienes una base de datos en producción y necesitas aplicar cambios (como agregar nuevas columnas), usa las migraciones en lugar de `db:init:remote`:
+**Las migraciones se ejecutan automáticamente en producción** cuando haces push a `main`. El sistema:
+- Detecta migraciones pendientes
+- Las ejecuta en orden
+- Registra cuáles han sido aplicadas
+
+Para desarrollo local, aplica migraciones manualmente:
 
 ```bash
 # Ver todas las migraciones disponibles
 ls migrations/
 
-# Aplicar una migración específica en producción (ejemplo)
-npx wrangler d1 execute trackme-db --remote --file=./migrations/XXX_migration_name.sql
+# Aplicar una migración específica en local
+npx wrangler d1 execute trackme-db --local --file=./migrations/XXX_migration_name.sql
 ```
 
 Ejemplo con la migración actual:
 ```bash
-npx wrangler d1 execute trackme-db --remote --file=./migrations/001_add_medication_taken.sql
+npx wrangler d1 execute trackme-db --local --file=./migrations/001_add_medication_taken.sql
 ```
 
-⚠️ **Importante**: Las migraciones son para bases de datos existentes. Si es una instalación nueva, usa `npm run db:init:remote` en su lugar.
+⚠️ **Importante**: 
+- Las migraciones en **producción son automáticas** (se ejecutan durante el deployment)
+- Para **desarrollo local**, debes ejecutarlas manualmente
+- Las migraciones son para bases de datos existentes. Si es una instalación nueva, usa `npm run db:init` (local) o `npm run db:init:remote` (producción)
 
 Consulta `migrations/README.md` para más detalles sobre cómo funcionan las migraciones.
 
