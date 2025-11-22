@@ -109,6 +109,22 @@ npm run db:init:remote
 
 Este comando ejecutará el schema en la base de datos D1 de Cloudflare en producción.
 
+#### Migraciones para Bases de Datos Existentes
+
+Si ya tienes una base de datos en producción y necesitas aplicar cambios (como agregar nuevas columnas), usa las migraciones en lugar de `db:init:remote`:
+
+```bash
+# Ver todas las migraciones disponibles
+ls migrations/
+
+# Aplicar una migración específica en producción
+npx wrangler d1 execute trackme-db --remote --file=./migrations/001_add_medication_taken.sql
+```
+
+⚠️ **Importante**: Las migraciones son para bases de datos existentes. Si es una instalación nueva, usa `npm run db:init:remote` en su lugar.
+
+Consulta `migrations/README.md` para más detalles sobre cómo funcionan las migraciones.
+
 ### 6. Configurar Credenciales de Admin
 
 #### Para Desarrollo Local
@@ -232,9 +248,14 @@ npm run test:ci   # Ejecutar tests una vez (para CI/CD)
 
 ### Base de Datos
 ```bash
-# Inicializar schema
+# Inicializar schema (solo para bases de datos nuevas)
 npm run db:init          # Inicializar DB local (desarrollo)
 npm run db:init:remote   # Inicializar DB remota (producción)
+
+# Migraciones (para bases de datos existentes)
+# Ver migrations/README.md para más detalles
+npx wrangler d1 execute trackme-db --local --file=./migrations/001_add_medication_taken.sql   # Migración local
+npx wrangler d1 execute trackme-db --remote --file=./migrations/001_add_medication_taken.sql  # Migración producción
 
 # Ejecutar consultas SQL
 npm run db:query "SELECT * FROM symptoms"         # Consulta local
