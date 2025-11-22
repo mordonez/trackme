@@ -60,7 +60,7 @@ api.get('/history-items', authMiddleware, async (c) => {
           <div class="history-date">{formatRelativeDate(log.date)}</div>
           <div class="history-type">
             {log.symptom_name}
-            {log.medication_taken === 1 && <span class="medication-badge" title="Medicación tomada">💊</span>}
+            {log.medication_taken && <span class="medication-badge" title="Medicación tomada">💊</span>}
           </div>
           {log.notes && <div class="history-notes">{log.notes}</div>}
           <div class="history-time">{formatTime(log.timestamp)}</div>
