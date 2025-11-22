@@ -2,6 +2,12 @@ name = "trackme"
 main = "src/index.js"
 compatibility_date = "2024-01-01"
 
+# Static assets configuration
+# Serve static files from the public directory
+[assets]
+directory = "public"
+binding = "ASSETS"
+
 # Variables de entorno para autenticación
 # IMPORTANTE: Las variables sensibles deben configurarse en:
 # - Desarrollo local: archivo .dev.vars (no incluido en git)
