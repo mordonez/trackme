@@ -117,7 +117,12 @@ Si ya tienes una base de datos en producción y necesitas aplicar cambios (como 
 # Ver todas las migraciones disponibles
 ls migrations/
 
-# Aplicar una migración específica en producción
+# Aplicar una migración específica en producción (ejemplo)
+npx wrangler d1 execute trackme-db --remote --file=./migrations/XXX_migration_name.sql
+```
+
+Ejemplo con la migración actual:
+```bash
 npx wrangler d1 execute trackme-db --remote --file=./migrations/001_add_medication_taken.sql
 ```
 
@@ -253,9 +258,9 @@ npm run db:init          # Inicializar DB local (desarrollo)
 npm run db:init:remote   # Inicializar DB remota (producción)
 
 # Migraciones (para bases de datos existentes)
-# Ver migrations/README.md para más detalles
-npx wrangler d1 execute trackme-db --local --file=./migrations/001_add_medication_taken.sql   # Migración local
-npx wrangler d1 execute trackme-db --remote --file=./migrations/001_add_medication_taken.sql  # Migración producción
+# Ver migrations/README.md para más detalles y lista completa
+npx wrangler d1 execute trackme-db --local --file=./migrations/XXX_migration_name.sql   # Migración local
+npx wrangler d1 execute trackme-db --remote --file=./migrations/XXX_migration_name.sql  # Migración producción
 
 # Ejecutar consultas SQL
 npm run db:query "SELECT * FROM symptoms"         # Consulta local

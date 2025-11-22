@@ -9,6 +9,11 @@ This directory contains SQL migration scripts for the TrackMe database.
 To apply a migration to the production database:
 
 ```bash
+npx wrangler d1 execute trackme-db --remote --file=./migrations/XXX_migration_name.sql
+```
+
+Example:
+```bash
 npx wrangler d1 execute trackme-db --remote --file=./migrations/001_add_medication_taken.sql
 ```
 
@@ -16,6 +21,11 @@ npx wrangler d1 execute trackme-db --remote --file=./migrations/001_add_medicati
 
 To apply a migration to the local development database:
 
+```bash
+npx wrangler d1 execute trackme-db --local --file=./migrations/XXX_migration_name.sql
+```
+
+Example:
 ```bash
 npx wrangler d1 execute trackme-db --local --file=./migrations/001_add_medication_taken.sql
 ```
@@ -32,6 +42,7 @@ Each migration file is numbered sequentially and describes a specific database c
 2. Migrations should be run in order (001, 002, 003, etc.)
 3. Test migrations in local environment first before applying to production
 4. SQLite doesn't support `IF NOT EXISTS` for `ALTER TABLE ADD COLUMN`, so running a migration twice will cause an error (this is by design to prevent accidental re-runs)
+5. Before running a migration, verify it hasn't been applied yet by checking the table schema
 
 ## Creating New Migrations
 
