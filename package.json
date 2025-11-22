@@ -1,7 +1,7 @@
 {
   "name": "trackme",
   "version": "1.0.0",
-  "description": "Minimalist symptom tracker with Cloudflare Workers + D1",
+  "description": "Minimalist symptom tracker with Hono + Cloudflare D1 + HTMX",
   "main": "src/index.js",
   "scripts": {
     "dev": "wrangler dev",
@@ -15,6 +15,8 @@
     "cloudflare",
     "workers",
     "d1",
+    "hono",
+    "htmx",
     "symptom-tracker"
   ],
   "author": "",
@@ -23,6 +25,6 @@
     "wrangler": "^4.0.0"
   },
   "dependencies": {
-    "@picocss/pico": "^2.1.1"
+    "hono": "^4.10.6"
   }
 }

@@ -1,6 +1,6 @@
 # 📊 TrackMe - Minimalist Symptom Tracker
 
-Una aplicación web minimalista para trackear síntomas o eventos (dolor de cabeza, alergias, etc.) usando **Cloudflare Workers + D1**.
+Una aplicación web minimalista para trackear síntomas o eventos (dolor de cabeza, alergias, etc.) usando **Hono + Cloudflare D1 + HTMX**.
 
 ## ✨ Características
 
@@ -8,23 +8,24 @@ Una aplicación web minimalista para trackear síntomas o eventos (dolor de cabe
 - **Notas opcionales**: Campo de texto para agregar detalles adicionales
 - **Historial**: Visualiza los últimos 14 días de registros
 - **Panel Admin**: Gestiona los tipos de síntomas a trackear
-- **Autenticación**: Login simple con token en localStorage
+- **Autenticación**: Login seguro con cookies HTTP-only
 - **Serverless**: 100% en Cloudflare Workers (sin servidor tradicional)
 - **Base de datos**: SQLite con Cloudflare D1
+- **Interactividad moderna**: UI dinámica sin recargas de página usando HTMX
 
 ## 🚀 Stack Tecnológico
 
-- **Backend**: Cloudflare Workers (serverless)
-- **Base de datos**: Cloudflare D1 (SQLite)
-- **Frontend**: HTML vanilla + CSS inline + JavaScript vanilla
-- **Sin frameworks**: Totalmente minimalista
+- **Framework**: Hono (framework web ultrarrápido para Cloudflare Workers)
+- **Base de datos**: Cloudflare D1 (SQLite) con integración nativa
+- **Frontend**: HTMX para interactividad sin JavaScript pesado
+- **Arquitectura**: Server-Side Rendering con actualizaciones parciales
 
 ## 📁 Estructura del Proyecto
 
 ```
 trackme/
 ├── src/
-│   └── index.js          # Worker principal (incluye HTML)
+│   └── index.js          # Aplicación Hono principal
 ├── schema.sql            # Schema de la base de datos
 ├── wrangler.toml         # Configuración de Cloudflare Workers (no en git)
 ├── wrangler.toml.example # Plantilla de configuración
@@ -103,8 +104,8 @@ Este comando ejecutará el schema en la base de datos D1 de Cloudflare en produc
 Crea un archivo `.dev.vars` en la raíz del proyecto:
 
 ```bash
-USER=tu-usuario
-PASSWORD=tu-password-seguro
+TRACKME_USER=tu-usuario
+TRACKME_PASSWORD=tu-password-seguro
 ```
 
 ⚠️ **IMPORTANTE**: El archivo `.dev.vars` NO se sube a git.
@@ -114,10 +115,10 @@ PASSWORD=tu-password-seguro
 Configura los secretos en Cloudflare usando Wrangler:
 
 ```bash
-wrangler secret put USER
+wrangler secret put TRACKME_USER
 # Ingresa tu usuario cuando se solicite
 
-wrangler secret put PASSWORD
+wrangler secret put TRACKME_PASSWORD
 # Ingresa tu password cuando se solicite
 ```
 
@@ -150,8 +151,8 @@ npm run db:init:remote
 ### 3. Configurar Secretos (si no lo hiciste antes)
 
 ```bash
-wrangler secret put USER
-wrangler secret put PASSWORD
+wrangler secret put TRACKME_USER
+wrangler secret put TRACKME_PASSWORD
 ```
 
 ¡Listo! Tu aplicación está en producción.
@@ -160,12 +161,13 @@ wrangler secret put PASSWORD
 
 ### Acceso Principal
 
-1. Abre la URL de tu aplicación
-2. Ingresa tus credenciales (las que configuraste en `wrangler.toml`)
+1. Abre la URL de tu aplicación (redirige a `/login` si no estás autenticado)
+2. Ingresa tus credenciales (las que configuraste en `.dev.vars` o secretos)
 3. Verás los botones de síntomas disponibles
-4. Haz clic en un síntoma para registrarlo
+4. Haz clic en un síntoma para abrir el modal de notas
 5. Opcionalmente, agrega notas adicionales
 6. El registro se guarda con la fecha y hora actual
+7. El historial se actualiza automáticamente sin recargar la página (HTMX)
 
 ### Panel de Administración
 
@@ -190,13 +192,15 @@ wrangler secret put PASSWORD
 
 ## 🔐 Seguridad
 
-- **Autenticación simple**: Usuario y contraseña mediante Cloudflare Workers secrets
-- **Token en localStorage**: Válido por 7 días
+- **Autenticación mejorada**: Autenticación basada en cookies HTTP-only seguras
+- **Token seguro**: Tokens con expiración de 7 días
 - **HTTPS**: Cloudflare Workers siempre usa HTTPS
 - **Variables sensibles**: Nunca incluir credenciales en `wrangler.toml`
 - **Archivos no incluidos en git**: `wrangler.toml`, `.dev.vars`
 - **Archivos incluidos en git**: `wrangler.toml.example` (plantilla sin secretos)
 - **Mejores prácticas**: Usa credenciales fuertes y diferentes para desarrollo y producción
+- **Headers de seguridad**: CSP, X-Frame-Options, HSTS, etc.
+- **Validación de entrada**: Sanitización y validación de todos los inputs
 
 ## 🔧 Comandos Disponibles
 
@@ -228,12 +232,17 @@ wrangler secret list                                      # Listar secretos
 ## 📊 Endpoints de la API
 
 ### Públicos
-- `POST /api/login` - Login (devuelve token)
+- `GET /login` - Página de login
+- `POST /api/login` - Autenticación (devuelve cookie segura)
 
-### Protegidos (requieren token)
-- `GET /api/symptom-types` - Listar tipos de síntomas
+### Protegidos (requieren autenticación)
+- `GET /` - Página principal
+- `GET /admin` - Panel de administración
+- `POST /api/logout` - Cerrar sesión
+- `GET /api/symptom-buttons` - Obtener botones de síntomas (HTMX partial)
+- `GET /api/history-items` - Obtener historial (HTMX partial)
 - `POST /api/log-symptom` - Registrar síntoma
-- `GET /api/history` - Obtener historial (últimos 14 días)
+- `GET /api/admin/symptom-list` - Lista de síntomas en admin (HTMX partial)
 - `POST /api/admin/add-symptom` - Agregar tipo de síntoma
 - `DELETE /api/admin/symptom/:id` - Eliminar tipo de síntoma
 
@@ -241,19 +250,30 @@ wrangler secret list                                      # Listar secretos
 
 ### Cambiar el Período del Historial
 
-En `src/index.js`, busca esta línea y cambia el número:
+En `src/index.js`, busca la constante `CONFIG.HISTORY_DAYS` al inicio del archivo y cambia el valor:
 
 ```javascript
-fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14); // Cambia 14 por el número de días deseado
+const CONFIG = {
+  TOKEN_EXPIRY_DAYS: 7,
+  HISTORY_DAYS: 14,  // Cambia este valor
+  MAX_NOTE_LENGTH: 1000,
+  MAX_SYMPTOM_NAME_LENGTH: 100,
+};
 ```
 
 ### Cambiar Estilos
 
-Los estilos CSS están inline en los archivos HTML dentro de `src/index.js`. Busca las secciones `<style>` y modifica según tus preferencias.
+Los estilos CSS están definidos en la constante `CSS_STYLES` dentro de `src/index.js`. Modifica las variables CSS en `:root` o los estilos según tus preferencias.
 
 ### Agregar Más Funcionalidades
 
-El Worker está estructurado de forma simple. Puedes agregar nuevos endpoints en la función `fetch()` de `src/index.js`.
+La aplicación usa Hono para el routing. Puedes agregar nuevas rutas usando:
+
+```javascript
+app.get('/tu-ruta', authMiddleware, async (c) => {
+  // Tu código aquí
+});
+```
 
 ## 🐛 Troubleshooting
 
@@ -262,9 +282,9 @@ El Worker está estructurado de forma simple. Puedes agregar nuevos endpoints en
 - Asegúrate de haber actualizado el `database_id` en `wrangler.toml`
 
 ### Error: "Unauthorized"
-- **Desarrollo**: Verifica que `.dev.vars` existe y tiene USER y PASSWORD configurados
+- **Desarrollo**: Verifica que `.dev.vars` existe y tiene TRACKME_USER y TRACKME_PASSWORD configurados
 - **Producción**: Ejecuta `wrangler secret list` para ver los secretos configurados
-- Borra el localStorage y vuelve a hacer login
+- Borra las cookies del navegador y vuelve a hacer login
 
 ### Error: "wrangler.toml not found"
 - Copia la plantilla: `cp wrangler.toml.example wrangler.toml`
@@ -282,5 +302,7 @@ MIT
 Las contribuciones son bienvenidas. Por favor, abre un issue o pull request.
 
 ---
+
+**Migrado a Hono + D1 + HTMX** para mejor rendimiento y arquitectura moderna 🚀
 
 Hecho con ❤️ usando Cloudflare Workers
