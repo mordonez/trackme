@@ -12,6 +12,9 @@ yarn.lock
 .env
 .env.local
 
+# Build outputs
+public/js/
+
 # Logs
 *.log
 npm-debug.log*

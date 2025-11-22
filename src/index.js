@@ -510,7 +510,7 @@ label {
 // ============================================================================
 
 // Base layout component
-const Layout = ({ title, children, includeModal = false }) => html`
+const Layout = ({ title, children, includeModal = false, includeAdmin = false }) => html`
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -523,52 +523,16 @@ const Layout = ({ title, children, includeModal = false }) => html`
 <body>
     ${raw(children)}
     ${includeModal ? raw(`
-    <div id="modal" class="modal">
-        <div class="modal-content">
-            <h3 id="modal-title">Agregar Notas</h3>
-            <form id="modal-form" hx-post="/api/log-symptom" hx-target="#message" hx-swap="innerHTML">
-                <input type="hidden" name="type_id" id="modal-type-id">
-                <div class="form-group">
-                    <textarea name="notes" placeholder="Detalles opcionales..." maxlength="1000" rows="4"></textarea>
-                </div>
-                <div class="modal-actions">
-                    <button type="submit">Guardar</button>
-                    <button type="button" class="secondary" onclick="closeModal()">Cancelar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script>
-    function openModal(id, name) {
-        document.getElementById('modal-title').textContent = name;
-        document.getElementById('modal-type-id').value = id;
-        document.getElementById('modal').classList.add('show');
-    }
-    
-    function closeModal() {
-        document.getElementById('modal').classList.remove('show');
-        document.querySelector('#modal-form textarea').value = '';
-    }
-    
-    // Listen for successful symptom log
-    document.body.addEventListener('htmx:afterRequest', function(evt) {
-        if (evt.detail.successful && evt.detail.pathInfo.requestPath === '/api/log-symptom') {
-            closeModal();
-            htmx.trigger('#history', 'reload-history');
-        }
-    });
-    
-    // Close modal on escape
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeModal();
-    });
-    
-    // Close modal on background click
-    document.getElementById('modal').addEventListener('click', function(e) {
-        if (e.target === this) closeModal();
-    });
-    </script>
+    <!-- Modal root for Hono client component -->
+    <div id="modal-root"></div>
+    `) : ''}
+    ${includeAdmin ? raw(`
+    <!-- Admin handler root for Hono client component -->
+    <div id="admin-root"></div>
+    `) : ''}
+    ${(includeModal || includeAdmin) ? raw(`
+    <!-- Hono Client Components (React-like but only 8.69 KB gzipped!) -->
+    <script type="module" src="/js/client.mjs"></script>
     `) : ''}
 </body>
 </html>
@@ -769,6 +733,7 @@ app.get('/admin', authMiddleware, (c) => {
   return c.html(
     Layout({
       title: 'Admin - TrackMe',
+      includeAdmin: true,
       children: `
         <div class="container">
             <div class="header-section">
@@ -808,22 +773,6 @@ app.get('/admin', authMiddleware, (c) => {
                 </div>
             </div>
         </div>
-
-        <script>
-        // Reload list after add/delete
-        document.body.addEventListener('htmx:afterRequest', function(evt) {
-            if (evt.detail.successful) {
-                const path = evt.detail.pathInfo.requestPath;
-                if (path === '/api/admin/add-symptom' || path.startsWith('/api/admin/symptom/')) {
-                    htmx.trigger('#symptom-list', 'reload-list');
-                    // Clear form if add
-                    if (path === '/api/admin/add-symptom') {
-                        evt.detail.elt.reset();
-                    }
-                }
-            }
-        });
-        </script>
       `
     })
   );

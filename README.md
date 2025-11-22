@@ -218,8 +218,10 @@ wrangler secret put TRACKME_PASSWORD
 
 ### Desarrollo y Despliegue
 ```bash
-npm run dev       # Desarrollo local
-npm run deploy    # Desplegar a producción
+npm run dev            # Desarrollo local
+npm run build          # Compilar client components
+npm run build:client   # Compilar solo client components
+npm run deploy         # Desplegar a producción
 ```
 
 ### Testing
@@ -399,6 +401,33 @@ const db = c.env.DB;
 - Middleware de seguridad para headers HTTP
 - Middleware de autenticación reutilizable
 - Inicialización automática de base de datos
+
+### 6. Client Components (hono/jsx/dom)
+- Componentes del lado del cliente usando sintaxis React-like
+- Bundle extremadamente pequeño: **8.69 KB gzipped** (vs 47.8 KB de React)
+- Soporte para hooks: `useState`, `useEffect`, `useRef`, etc.
+- Modal interactivo y manejo de eventos con client components
+- Build automático antes de deployment
+
+```jsx
+// src/client/index.jsx
+import { useState, useEffect } from 'hono/jsx'
+import { render } from 'hono/jsx/dom'
+
+function SymptomModal() {
+  const [isOpen, setIsOpen] = useState(false)
+  // ... React-like component logic
+  return <div className="modal">{/* JSX */}</div>
+}
+
+render(<SymptomModal />, document.getElementById('modal-root'))
+```
+
+**Características del cliente:**
+- ⚡ Ultraligero: solo 26KB sin comprimir, 8.69 KB con gzip
+- 🎯 API compatible con React hooks
+- 🔥 Rendimiento superior a React para casos de uso simples
+- 🛠️ Integración perfecta con HTMX
 
 ### Los cambios no se reflejan en desarrollo
 - Detén el servidor (`Ctrl+C`) y vuelve a ejecutar `npm run dev`
