@@ -25,10 +25,10 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
 
 # Get list of applied migrations
 echo "🔍 Checking applied migrations..."
-APPLIED_MIGRATIONS=$(wrangler d1 execute trackme-db --remote --command="SELECT version FROM schema_migrations ORDER BY version" --json 2>/dev/null | jq -r '.[0].results[].version' 2>/dev/null || echo "")
+APPLIED_MIGRATIONS=$(wrangler d1 execute trackme-db --remote --command="SELECT version FROM schema_migrations ORDER BY version" --json 2>/dev/null | jq -r 'try .[0].results[].version // empty' 2>/dev/null || echo "")
 
 # Find all migration files
-MIGRATION_FILES=$(ls migrations/*.sql 2>/dev/null | sort)
+MIGRATION_FILES=$(find migrations -name '*.sql' -type f 2>/dev/null | sort)
 
 if [ -z "$MIGRATION_FILES" ]; then
     echo "ℹ️  No migration files found in migrations/ directory"
