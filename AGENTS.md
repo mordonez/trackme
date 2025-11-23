@@ -65,8 +65,8 @@ document.addEventListener('keydown', (e) => {
 
 Usa `hx-trigger` para recargar contenido:
 ```html
-<div id="history" 
-     hx-get="/api/history-items" 
+<div id="history"
+     hx-get="/api/history-items"
      hx-trigger="load, reload-history from:body">
 </div>
 ```
