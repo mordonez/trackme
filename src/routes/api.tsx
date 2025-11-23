@@ -23,8 +23,8 @@ api.get('/symptom-buttons', authMiddleware, async (c) => {
   return c.html(
     <>
       {results.map((type: any) => (
-        <button class="symptom-btn" 
-                data-symptom-id={type.id} 
+        <button class="symptom-btn"
+                data-symptom-id={type.id}
                 data-symptom-name={type.name}
                 onclick={`openModal(this.dataset.symptomId, this.dataset.symptomName)`}>
           {type.name}
@@ -60,7 +60,7 @@ api.get('/history-items', authMiddleware, async (c) => {
           <div class="history-date">{formatRelativeDate(log.date)}</div>
           <div class="history-type">
             {log.symptom_name}
-            {log.medication_taken && <span class="medication-badge" title="Medicación tomada">💊</span>}
+            {log.medication_taken === 1 && <span class="medication-badge" title="Medicación tomada">💊</span>}
           </div>
           {log.notes && <div class="history-notes">{log.notes}</div>}
           <div class="history-time">{formatTime(log.timestamp)}</div>
@@ -107,7 +107,7 @@ api.get('/admin/symptom-list', authMiddleware, async (c) => {
               <div class="symptom-name">{type.name}</div>
               <div class="symptom-date">Creado: {date}</div>
             </div>
-            <button class="outline danger" 
+            <button class="outline danger"
                     hx-delete={`/api/admin/symptom/${type.id}`}
                     hx-confirm={`¿Estás seguro de eliminar '${type.name}'? Esto también eliminará todos los registros asociados.`}
                     hx-target="#message"
