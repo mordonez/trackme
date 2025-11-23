@@ -40,8 +40,5 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-      - name: Install Wrangler CLI
-        run: npm install -g wrangler
-
       - name: Run migrations
         run: sh ./scripts/run-migrations.sh
