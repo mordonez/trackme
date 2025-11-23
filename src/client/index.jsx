@@ -63,31 +63,42 @@ function SymptomModal() {
 
   if (!isOpen) return null
 
+  // After rendering, process HTMX attributes
+  useEffect(() => {
+    if (isOpen && window.htmx) {
+      const form = document.querySelector('.modal form')
+      if (form) {
+        window.htmx.process(form)
+      }
+    }
+  }, [isOpen])
+
   return (
     <div className="modal show" onClick={handleBackdropClick}>
       <div className="modal-content">
         <h3>{symptomName}</h3>
-        <form 
-          hx-post="/api/log-symptom" 
-          hx-target="#message" 
+        <form
+          hx-post="/api/log-symptom"
+          hx-target="#message"
           hx-swap="innerHTML"
         >
           <input type="hidden" name="type_id" value={symptomId} />
           <div className="form-group">
-            <textarea 
-              name="notes" 
-              placeholder="Detalles opcionales..." 
-              maxlength="1000" 
+            <textarea
+              name="notes"
+              placeholder="Detalles opcionales..."
+              maxlength="1000"
               rows="4"
               value={notes}
               onInput={(e) => setNotes(e.target.value)}
             />
           </div>
-          <div className="form-group checkbox-group">
+                    <div className="form-group checkbox-group">
             <label>
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 name="medication_taken"
+                value="true"
                 checked={medicationTaken}
                 onChange={(e) => setMedicationTaken(e.target.checked)}
               />

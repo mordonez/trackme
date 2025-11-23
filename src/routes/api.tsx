@@ -10,6 +10,29 @@ import { formatRelativeDate, formatTime } from '../lib/utils'
 
 const api = new Hono<{ Bindings: Bindings }>()
 
+// Health check endpoint (no auth required)
+api.get('/health', async (c) => {
+  try {
+    // Verificar conexión a la base de datos
+    await c.env.DB.prepare('SELECT 1').first()
+
+    return c.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      service: 'trackme',
+      database: 'connected'
+    })
+  } catch (error) {
+    return c.json({
+      status: 'unhealthy',
+      timestamp: new Date().toISOString(),
+      service: 'trackme',
+      database: 'disconnected',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }, 503)
+  }
+})
+
 // Get symptom buttons
 api.get('/symptom-buttons', authMiddleware, async (c) => {
   const { results } = await c.env.DB.prepare(

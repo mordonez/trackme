@@ -33,38 +33,7 @@ export async function securityHeaders(c: Context, next: Next) {
 }
 
 export async function initDatabase(c: Context<{ Bindings: Bindings }>, next: Next) {
-  const db = c.env.DB
-  try {
-    await db.prepare(`
-      CREATE TABLE IF NOT EXISTS symptom_types (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL UNIQUE,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `).run()
-
-    await db.prepare(`
-      CREATE TABLE IF NOT EXISTS symptom_logs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        type_id INTEGER NOT NULL,
-        notes TEXT,
-        date DATE NOT NULL,
-        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (type_id) REFERENCES symptom_types(id) ON DELETE CASCADE
-      )
-    `).run()
-
-    await db.prepare(`
-      CREATE INDEX IF NOT EXISTS idx_symptom_logs_date
-      ON symptom_logs(date DESC)
-    `).run()
-
-    await db.prepare(`
-      CREATE INDEX IF NOT EXISTS idx_symptom_logs_type_id
-      ON symptom_logs(type_id)
-    `).run()
-  } catch (error) {
-    console.error('Database initialization error:', error)
-  }
+  // Database schema is managed via migrations (see migrations/ directory and scripts/run-migrations.sh)
+  // This middleware is kept for backwards compatibility but does nothing in production
   await next()
 }
