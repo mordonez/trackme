@@ -19,20 +19,9 @@ if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
     exit 1
 fi
 
-# Set up account ID arguments if CLOUDFLARE_ACCOUNT_ID is provided
-ACCOUNT_ID_ARGS=()
-if [ -n "$CLOUDFLARE_ACCOUNT_ID" ]; then
-    ACCOUNT_ID_ARGS=(--account-id "$CLOUDFLARE_ACCOUNT_ID")
-    echo "✅ Using account ID from environment variable"
-else
-    echo "⚠️  Warning: CLOUDFLARE_ACCOUNT_ID is not set"
-    echo "   Wrangler will attempt to infer the account from your configuration"
-    echo "   If you encounter authentication errors, please set CLOUDFLARE_ACCOUNT_ID"
-fi
-
 # Create migrations tracking table if it doesn't exist
 echo "📋 Ensuring migrations tracking table exists..."
-wrangler d1 execute trackme-db --remote "${ACCOUNT_ID_ARGS[@]}" --command="
+wrangler d1 execute trackme-db --remote --command="
 CREATE TABLE IF NOT EXISTS schema_migrations (
     version TEXT PRIMARY KEY,
     applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -43,7 +32,7 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
 
 # Get list of applied migrations
 echo "🔍 Checking applied migrations..."
-APPLIED_MIGRATIONS=$(wrangler d1 execute trackme-db --remote "${ACCOUNT_ID_ARGS[@]}" --command="SELECT version FROM schema_migrations ORDER BY version" --json 2>/dev/null | jq -r 'try .[0].results[].version // empty' 2>/dev/null || echo "")
+APPLIED_MIGRATIONS=$(wrangler d1 execute trackme-db --remote --command="SELECT version FROM schema_migrations ORDER BY version" --json 2>/dev/null | jq -r 'try .[0].results[].version // empty' 2>/dev/null || echo "")
 
 # Find all migration files
 MIGRATION_FILES=$(find migrations -name '*.sql' -type f 2>/dev/null | sort)
@@ -60,20 +49,20 @@ MIGRATIONS_SKIPPED=0
 for MIGRATION_FILE in $MIGRATION_FILES; do
     # Extract version from filename (e.g., 001 from 001_add_medication_taken.sql)
     MIGRATION_VERSION=$(basename "$MIGRATION_FILE" | cut -d'_' -f1)
-    
+
     # Check if migration has already been applied
     if echo "$APPLIED_MIGRATIONS" | grep -q "^${MIGRATION_VERSION}$"; then
         echo "⏭️  Skipping $MIGRATION_FILE (already applied)"
         MIGRATIONS_SKIPPED=$((MIGRATIONS_SKIPPED + 1))
         continue
     fi
-    
+
     echo "🚀 Applying migration: $MIGRATION_FILE"
-    
+
     # Run the migration
-    if wrangler d1 execute trackme-db --remote "${ACCOUNT_ID_ARGS[@]}" --file="$MIGRATION_FILE"; then
+    if wrangler d1 execute trackme-db --remote --file="$MIGRATION_FILE"; then
         # Record successful migration
-        wrangler d1 execute trackme-db --remote "${ACCOUNT_ID_ARGS[@]}" --command="INSERT INTO schema_migrations (version) VALUES ('${MIGRATION_VERSION}')" > /dev/null
+        wrangler d1 execute trackme-db --remote --command="INSERT INTO schema_migrations (version) VALUES ('${MIGRATION_VERSION}')" > /dev/null
         echo "✅ Successfully applied $MIGRATION_FILE"
         MIGRATIONS_RUN=$((MIGRATIONS_RUN + 1))
     else
