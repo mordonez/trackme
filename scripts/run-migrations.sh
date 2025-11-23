@@ -13,9 +13,15 @@ if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
     exit 1
 fi
 
+if [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+    echo "❌ Error: CLOUDFLARE_ACCOUNT_ID environment variable is not set"
+    echo "   Please ensure the secret is configured in GitHub Actions"
+    exit 1
+fi
+
 # Create migrations tracking table if it doesn't exist
 echo "📋 Ensuring migrations tracking table exists..."
-npx wrangler d1 execute trackme-db --remote --command="
+CLOUDFLARE_ACCOUNT_ID="$CLOUDFLARE_ACCOUNT_ID" npx wrangler d1 execute trackme-db --remote --command="
 CREATE TABLE IF NOT EXISTS schema_migrations (
     version TEXT PRIMARY KEY,
     applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -26,7 +32,7 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
 
 # Get list of applied migrations
 echo "🔍 Checking applied migrations..."
-APPLIED_MIGRATIONS=$(npx wrangler d1 execute trackme-db --remote --command="SELECT version FROM schema_migrations ORDER BY version" --json 2>/dev/null | jq -r 'try .[0].results[].version // empty' 2>/dev/null || echo "")
+APPLIED_MIGRATIONS=$(CLOUDFLARE_ACCOUNT_ID="$CLOUDFLARE_ACCOUNT_ID" npx wrangler d1 execute trackme-db --remote --command="SELECT version FROM schema_migrations ORDER BY version" --json 2>/dev/null | jq -r 'try .[0].results[].version // empty' 2>/dev/null || echo "")
 
 # Find all migration files
 MIGRATION_FILES=$(find migrations -name '*.sql' -type f 2>/dev/null | sort)
@@ -54,9 +60,9 @@ for MIGRATION_FILE in $MIGRATION_FILES; do
     echo "🚀 Applying migration: $MIGRATION_FILE"
 
     # Run the migration
-    if npx wrangler d1 execute trackme-db --remote --file="$MIGRATION_FILE"; then
+    if CLOUDFLARE_ACCOUNT_ID="$CLOUDFLARE_ACCOUNT_ID" npx wrangler d1 execute trackme-db --remote --file="$MIGRATION_FILE"; then
         # Record successful migration
-        npx wrangler d1 execute trackme-db --remote --command="INSERT INTO schema_migrations (version) VALUES ('${MIGRATION_VERSION}')" > /dev/null
+        CLOUDFLARE_ACCOUNT_ID="$CLOUDFLARE_ACCOUNT_ID" npx wrangler d1 execute trackme-db --remote --command="INSERT INTO schema_migrations (version) VALUES ('${MIGRATION_VERSION}')" > /dev/null
         echo "✅ Successfully applied $MIGRATION_FILE"
         MIGRATIONS_RUN=$((MIGRATIONS_RUN + 1))
     else
