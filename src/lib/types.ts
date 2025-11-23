@@ -11,9 +11,24 @@ export type Variables = {
   user: string | null
 }
 
-export const CONFIG = {
-  TOKEN_EXPIRY_DAYS: 7,
-  HISTORY_DAYS: 14,
-  MAX_NOTE_LENGTH: 1000,
-  MAX_SYMPTOM_NAME_LENGTH: 100,
-} as const
+// ============================================
+// DATABASE MODELS (datos de la BD)
+// ============================================
+export interface SymptomType {
+  id: number
+  name: string
+  created_at: string
+}
+
+export interface SymptomLog {
+  id: number
+  type_id: number
+  notes: string | null
+  medication_taken: 0 | 1
+  date: string
+  timestamp: string
+}
+
+export interface SymptomLogWithName extends SymptomLog {
+  name: string
+}

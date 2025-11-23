@@ -1,0 +1,6 @@
+export const CONFIG = {
+  TOKEN_EXPIRY_DAYS: 7,
+  HISTORY_DAYS: 14,
+  MAX_NOTE_LENGTH: 1000,
+  MAX_SYMPTOM_NAME_LENGTH: 100,
+} as const

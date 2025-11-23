@@ -1,7 +1,7 @@
 // Validation schemas using Zod
 
 import { z } from 'zod'
-import { CONFIG } from './types'
+import { CONFIG } from './config'
 
 // Schemas
 export const credentialsSchema = z.object({

@@ -1,161 +1,52 @@
-/** @jsxImportSource hono/jsx/dom */
-
-import { useState, useEffect } from 'hono/jsx'
-import { render } from 'hono/jsx/dom'
-
 /**
- * Modal Component for adding symptom notes
- * Uses Hono's client components for lightweight React-like functionality
+ * Simple client-side JavaScript for HTMX enhancements
+ * No React, no useState, no useEffect - just vanilla JS
  */
-function SymptomModal() {
-  const [isOpen, setIsOpen] = useState(false)
-  const [symptomId, setSymptomId] = useState(null)
-  const [symptomName, setSymptomName] = useState('')
-  const [notes, setNotes] = useState('')
-  const [medicationTaken, setMedicationTaken] = useState(false)
 
-  // Global function to open modal (called from HTMX buttons)
-  useEffect(() => {
-    window.openModal = (id, name) => {
-      setSymptomId(id)
-      setSymptomName(name)
-      setIsOpen(true)
-    }
-  }, [])
-
-  // Close modal on Escape key
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && isOpen) {
-        closeModal()
-      }
-    }
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen])
-
-  // Listen for successful symptom log from HTMX
-  useEffect(() => {
-    const handleAfterRequest = (evt) => {
-      if (evt.detail.successful && evt.detail.pathInfo.requestPath === '/api/log-symptom') {
-        closeModal()
-        // Trigger HTMX to reload history
-        if (window.htmx) {
-          window.htmx.trigger('#history', 'reload-history')
-        }
-      }
-    }
-    document.body.addEventListener('htmx:afterRequest', handleAfterRequest)
-    return () => document.body.removeEventListener('htmx:afterRequest', handleAfterRequest)
-  }, [])
-
-  const closeModal = () => {
-    setIsOpen(false)
-    setNotes('')
-    setMedicationTaken(false)
-  }
-
-  const handleBackdropClick = (e) => {
-    if (e.target === e.currentTarget) {
-      closeModal()
-    }
-  }
-
-  if (!isOpen) return null
-
-  // After rendering, process HTMX attributes
-  useEffect(() => {
-    if (isOpen && window.htmx) {
-      const form = document.querySelector('.modal form')
-      if (form) {
-        window.htmx.process(form)
-      }
-    }
-  }, [isOpen])
-
-  return (
-    <div className="modal show" onClick={handleBackdropClick}>
-      <div className="modal-content">
-        <h3>{symptomName}</h3>
-        <form
-          hx-post="/api/log-symptom"
-          hx-target="#message"
-          hx-swap="innerHTML"
-        >
-          <input type="hidden" name="type_id" value={symptomId} />
-          <div className="form-group">
-            <textarea
-              name="notes"
-              placeholder="Detalles opcionales..."
-              maxlength="1000"
-              rows="4"
-              value={notes}
-              onInput={(e) => setNotes(e.target.value)}
-            />
-          </div>
-                    <div className="form-group checkbox-group">
-            <label>
-              <input
-                type="checkbox"
-                name="medication_taken"
-                value="true"
-                checked={medicationTaken}
-                onChange={(e) => setMedicationTaken(e.target.checked)}
-              />
-              <span>¿Tomé medicación?</span>
-            </label>
-          </div>
-          <div className="modal-actions">
-            <button type="submit">Guardar</button>
-            <button type="button" className="secondary" onClick={closeModal}>
-              Cancelar
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
-}
-
-/**
- * Admin Reload Handler
- * Handles automatic list reload after add/delete operations
- */
-function AdminReloadHandler() {
-  useEffect(() => {
-    const handleAfterRequest = (evt) => {
-      if (evt.detail.successful) {
-        const path = evt.detail.pathInfo.requestPath
-        if (path === '/api/admin/add-symptom' || path.startsWith('/api/admin/symptom/')) {
-          // Trigger HTMX to reload symptom list
-          if (window.htmx) {
-            window.htmx.trigger('#symptom-list', 'reload-list')
-          }
-          // Clear form if add
-          if (path === '/api/admin/add-symptom') {
-            evt.detail.elt.reset()
-          }
-        }
-      }
-    }
-    document.body.addEventListener('htmx:afterRequest', handleAfterRequest)
-    return () => document.body.removeEventListener('htmx:afterRequest', handleAfterRequest)
-  }, [])
-
-  return null
-}
-
-// Initialize components when DOM is ready
 if (typeof document !== 'undefined') {
-  // Mount modal component
-  const modalRoot = document.getElementById('modal-root')
-  if (modalRoot) {
-    render(<SymptomModal />, modalRoot)
-  }
 
-  // Mount admin handler on admin page
-  const adminRoot = document.getElementById('admin-root')
-  if (adminRoot) {
-    render(<AdminReloadHandler />, adminRoot)
-  }
+  // Cerrar modal con tecla Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const modal = document.querySelector('.modal.show')
+      if (modal) modal.remove()
+    }
+  })
+
+  // Cerrar modal al hacer clic en el backdrop
+  document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('modal') && e.target.classList.contains('show')) {
+      e.target.remove()
+    }
+  })
+
+  // Manejar eventos HTMX después de las peticiones
+  document.body.addEventListener('htmx:afterRequest', (evt) => {
+    if (!evt.detail.successful) return
+
+    const path = evt.detail.pathInfo.requestPath
+
+    // Después de registrar un síntoma, cerrar modal y recargar historial
+    if (path === '/api/log-symptom') {
+      const modal = document.querySelector('.modal.show')
+      if (modal) modal.remove()
+
+      // Recargar historial
+      if (window.htmx) {
+        window.htmx.trigger('#history', 'reload-history')
+      }
+    }
+
+    // Después de agregar/eliminar síntoma en admin, recargar lista
+    if (path === '/api/admin/add-symptom' || path.startsWith('/api/admin/symptom/')) {
+      if (window.htmx) {
+        window.htmx.trigger('#symptom-list', 'reload-list')
+      }
+
+      // Limpiar formulario si fue agregar
+      if (path === '/api/admin/add-symptom') {
+        evt.detail.elt.reset()
+      }
+    }
+  })
 }

@@ -21,8 +21,6 @@ export const Layout = ({ title, children, includeModal, includeAdmin }: LayoutPr
     </head>
     <body>
       {raw(children)}
-      {includeModal && <div id="modal-root"></div>}
-      {includeAdmin && <div id="admin-root"></div>}
       {(includeModal || includeAdmin) && (
         <script type="module" src="/js/client.mjs"></script>
       )}

@@ -9,6 +9,13 @@ export async function authMiddleware(c: Context<{ Bindings: Bindings }>, next: N
   await next()
 }
 
+export async function guestOnlyMiddleware(c: Context<{ Bindings: Bindings }>, next: Next) {
+  if (isAuthenticated(c)) {
+    return c.redirect('/')
+  }
+  await next()
+}
+
 export async function securityHeaders(c: Context, next: Next) {
   await next()
   c.header('X-Content-Type-Options', 'nosniff')

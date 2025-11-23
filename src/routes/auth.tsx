@@ -6,10 +6,11 @@ import type { Bindings } from '../lib/types'
 import { credentialsSchema } from '../lib/schemas'
 import { setAuthCookie, clearAuthCookie } from '../lib/auth'
 import { Layout, FormGroup } from '../components/Layout'
+import { guestOnlyMiddleware } from '../lib/middleware'
 
 const auth = new Hono<{ Bindings: Bindings }>()
 
-auth.get('/login', (c) => {
+auth.get('/login', guestOnlyMiddleware, (c) => {
   return c.html(
     <Layout title="Login - TrackMe">
       <div class="container">

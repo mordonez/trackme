@@ -3,7 +3,7 @@
 import type { Context } from 'hono'
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie'
 import type { Bindings } from './types'
-import { CONFIG } from './types'
+import { CONFIG } from './config'
 
 export function generateToken(username: string, password: string): string {
   const timestamp = Date.now()
@@ -15,18 +15,18 @@ export function generateToken(username: string, password: string): string {
 export function validateToken(token: string, validUser: string, validPassword: string): boolean {
   try {
     if (!token || token.length > 500) return false
-    
+
     const decoded = atob(token)
     const parts = decoded.split(':')
     if (parts.length < 3) return false
-    
+
     const [username, password, timestamp] = parts
     if (username !== validUser || password !== validPassword) return false
-    
+
     const tokenAge = Date.now() - parseInt(timestamp, 10)
     const maxAge = CONFIG.TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000
     if (isNaN(tokenAge) || tokenAge < 0 || tokenAge > maxAge) return false
-    
+
     return true
   } catch {
     return false

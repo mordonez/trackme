@@ -2,8 +2,8 @@
 
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
-import type { Bindings } from '../lib/types'
-import { CONFIG } from '../lib/types'
+import type { Bindings,SymptomLogWithName,SymptomType } from '../lib/types'
+import { CONFIG } from '../lib/config'
 import { authMiddleware } from '../lib/middleware'
 import { symptomNameSchema, logSymptomSchema, symptomIdSchema } from '../lib/schemas'
 import { formatRelativeDate, formatTime } from '../lib/utils'
@@ -37,7 +37,7 @@ api.get('/health', async (c) => {
 api.get('/symptom-buttons', authMiddleware, async (c) => {
   const { results } = await c.env.DB.prepare(
     'SELECT id, name FROM symptom_types ORDER BY name ASC'
-  ).all()
+  ).all<SymptomType>()
 
   if (!results?.length) {
     return c.html(<p style="color: #999;">No hay síntomas configurados. Ve al Panel Admin para agregar algunos.</p>)
@@ -45,15 +45,60 @@ api.get('/symptom-buttons', authMiddleware, async (c) => {
 
   return c.html(
     <>
-      {results.map((type: any) => (
+      {results.map((type) => (
         <button class="symptom-btn"
-                data-symptom-id={type.id}
-                data-symptom-name={type.name}
-                onclick={`openModal(this.dataset.symptomId, this.dataset.symptomName)`}>
+                hx-get={`/api/symptom-modal/${type.id}?name=${encodeURIComponent(type.name)}`}
+                hx-target="body"
+                hx-swap="beforeend">
           {type.name}
         </button>
       ))}
     </>
+  )
+})
+
+// Get symptom modal
+api.get('/symptom-modal/:id', authMiddleware, async (c) => {
+  const id = c.req.param('id')
+  const name = c.req.query('name') || ''
+
+  return c.html(
+    <div class="modal show" id="symptom-modal">
+      <div class="modal-content">
+        <h3>{name}</h3>
+        <form
+          hx-post="/api/log-symptom"
+          hx-target="#message"
+          hx-swap="innerHTML"
+        >
+          <input type="hidden" name="type_id" value={id} />
+          <div class="form-group">
+            <textarea
+              name="notes"
+              placeholder="Detalles opcionales..."
+              maxlength={1000}
+              rows={4}
+            />
+          </div>
+          <div class="form-group checkbox-group">
+            <label>
+              <input type="checkbox" name="medication_taken" value="true" />
+              <span>¿Tomé medicación?</span>
+            </label>
+          </div>
+          <div class="modal-actions">
+            <button type="submit">Guardar</button>
+            <button
+              type="button"
+              class="secondary"
+              onclick="this.closest('.modal').remove()"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   )
 })
 
@@ -64,13 +109,13 @@ api.get('/history-items', authMiddleware, async (c) => {
   const dateLimit = daysAgo.toISOString().split('T')[0]
 
   const { results } = await c.env.DB.prepare(`
-    SELECT sl.id, sl.notes, sl.medication_taken, sl.date, sl.timestamp, st.name as symptom_name
+    SELECT sl.id, sl.notes, sl.medication_taken, sl.date, sl.timestamp, st.name
     FROM symptom_logs sl
     JOIN symptom_types st ON sl.type_id = st.id
     WHERE sl.date >= ?
     ORDER BY sl.timestamp DESC
     LIMIT 100
-  `).bind(dateLimit).all()
+  `).bind(dateLimit).all<SymptomLogWithName>()
 
   if (!results?.length) {
     return c.html(<p style="color: #999;">No hay registros aún</p>)
@@ -78,11 +123,11 @@ api.get('/history-items', authMiddleware, async (c) => {
 
   return c.html(
     <>
-      {results.map((log: any) => (
+      {results.map((log) => (
         <div class="history-item">
           <div class="history-date">{formatRelativeDate(log.date)}</div>
           <div class="history-type">
-            {log.symptom_name}
+            {log.name}
             {log.medication_taken === 1 && <span class="medication-badge" title="Medicación tomada">💊</span>}
           </div>
           {log.notes && <div class="history-notes">{log.notes}</div>}
@@ -109,7 +154,7 @@ api.post('/log-symptom', authMiddleware, zValidator('form', logSymptomSchema), a
 api.get('/admin/symptom-list', authMiddleware, async (c) => {
   const { results } = await c.env.DB.prepare(
     'SELECT id, name, created_at FROM symptom_types ORDER BY name ASC'
-  ).all()
+  ).all<SymptomType>()
 
   if (!results?.length) {
     return c.html(<p style="color: #999; text-align: center; padding: 20px;">No hay síntomas configurados</p>)
@@ -117,7 +162,7 @@ api.get('/admin/symptom-list', authMiddleware, async (c) => {
 
   return c.html(
     <>
-      {results.map((type: any) => {
+      {results.map((type) => {
         const date = new Date(type.created_at).toLocaleDateString('es-ES', {
           year: 'numeric',
           month: 'long',
