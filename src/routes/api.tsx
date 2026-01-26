@@ -5,7 +5,7 @@ import { zValidator } from '@hono/zod-validator'
 import type { Bindings,SymptomLogWithName,SymptomType } from '../lib/types'
 import { CONFIG } from '../lib/config'
 import { authMiddleware } from '../lib/middleware'
-import { symptomNameSchema, logSymptomSchema, symptomIdSchema } from '../lib/schemas'
+import { symptomNameSchema, logSymptomSchema, symptomIdSchema, editSymptomSchema } from '../lib/schemas'
 import { formatRelativeDate, formatTime } from '../lib/utils'
 
 const api = new Hono<{ Bindings: Bindings }>()
@@ -102,6 +102,78 @@ api.get('/symptom-modal/:id', authMiddleware, async (c) => {
   )
 })
 
+// Get edit symptom modal
+api.get('/edit-symptom-modal/:id', authMiddleware, async (c) => {
+  const id = c.req.param('id')
+
+  // Fetch existing log
+  const log = await c.env.DB.prepare(`
+    SELECT sl.*, st.name
+    FROM symptom_logs sl
+    JOIN symptom_types st ON sl.type_id = st.id
+    WHERE sl.id = ?
+  `).bind(id).first<SymptomLogWithName>()
+
+  if (!log) {
+    return c.html(
+      <div class="modal show">
+        <div class="modal-content">
+          <p style="color: #ef4444;">Registro no encontrado</p>
+          <button type="button" class="secondary" onclick="this.closest('.modal').remove()">
+            Cerrar
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return c.html(
+    <div class="modal show" id="edit-symptom-modal">
+      <div class="modal-content">
+        <h3>Editar: {log.name}</h3>
+        <p style="color: #999; font-size: 0.875rem; margin-bottom: 1rem;">
+          {formatRelativeDate(log.date)} - {formatTime(log.timestamp)}
+        </p>
+        <form
+          hx-put={`/api/symptom-log/${id}`}
+          hx-target="#message"
+          hx-swap="innerHTML"
+        >
+          <div class="form-group">
+            <textarea
+              name="notes"
+              placeholder="Detalles opcionales..."
+              maxlength={1000}
+              rows={4}
+            >{log.notes || ''}</textarea>
+          </div>
+          <div class="form-group checkbox-group">
+            <label>
+              <input
+                type="checkbox"
+                name="medication_taken"
+                value="true"
+                checked={log.medication_taken === 1}
+              />
+              <span>¿Tomé medicación?</span>
+            </label>
+          </div>
+          <div class="modal-actions">
+            <button type="submit">Guardar cambios</button>
+            <button
+              type="button"
+              class="secondary"
+              onclick="this.closest('.modal').remove()"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+})
+
 // Get history items
 api.get('/history-items', authMiddleware, async (c) => {
   const daysAgo = new Date()
@@ -131,11 +203,44 @@ api.get('/history-items', authMiddleware, async (c) => {
             {log.medication_taken === 1 && <span class="medication-badge" title="Medicación tomada">💊</span>}
           </div>
           {log.notes && <div class="history-notes">{log.notes}</div>}
-          <div class="history-time">{formatTime(log.timestamp)}</div>
+          <div class="history-time">
+            {formatTime(log.timestamp)}
+            <button
+              class="icon-button"
+              hx-get={`/api/edit-symptom-modal/${log.id}`}
+              hx-target="body"
+              hx-swap="beforeend"
+              title="Editar registro"
+            >
+              ✏️
+            </button>
+          </div>
         </div>
       ))}
     </>
   )
+})
+
+// Update symptom log
+api.put('/symptom-log/:id', authMiddleware, zValidator('form', editSymptomSchema), async (c) => {
+  const id = c.req.param('id')
+  const { notes, medication_taken } = c.req.valid('form')
+
+  try {
+    await c.env.DB.prepare(
+      'UPDATE symptom_logs SET notes = ?, medication_taken = ? WHERE id = ?'
+    ).bind(notes, medication_taken, id).run()
+
+    return c.html(
+      <div class="success">✓ Registro actualizado correctamente</div>
+    )
+  } catch (error) {
+    console.error('Error updating symptom log:', error)
+    return c.html(
+      <div class="error">Error al actualizar el registro</div>,
+      500
+    )
+  }
 })
 
 // Log symptom

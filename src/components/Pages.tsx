@@ -1,6 +1,7 @@
 /** @jsxImportSource hono/jsx */
 
 import { Layout, TopNav } from '../components/Layout'
+import { CONFIG } from '../lib/config'
 
 export const HomePage = () => (
   <Layout title="TrackMe" includeModal>
@@ -21,9 +22,9 @@ export const HomePage = () => (
 
       <div>
         <h2>Registrar Síntoma</h2>
-        <div id="symptom-buttons" 
-             class="symptom-grid" 
-             hx-get="/api/symptom-buttons" 
+        <div id="symptom-buttons"
+             class="symptom-grid"
+             hx-get="/api/symptom-buttons"
              hx-trigger="load"
              hx-swap="innerHTML">
           <div class="loading">Cargando...</div>
@@ -31,9 +32,9 @@ export const HomePage = () => (
       </div>
 
       <div>
-        <h2>Historial (14 días)</h2>
-        <div id="history" 
-             hx-get="/api/history-items" 
+        <h2>Historial ({CONFIG.HISTORY_DAYS} días)</h2>
+        <div id="history"
+             hx-get="/api/history-items"
              hx-trigger="load, reload-history from:body"
              hx-swap="innerHTML">
           <div class="loading">Cargando...</div>
@@ -72,9 +73,9 @@ export const AdminPage = () => (
 
       <div>
         <h2>Lista de Síntomas</h2>
-        <div id="symptom-list" 
+        <div id="symptom-list"
              class="symptom-list"
-             hx-get="/api/admin/symptom-list" 
+             hx-get="/api/admin/symptom-list"
              hx-trigger="load, reload-list from:body"
              hx-swap="innerHTML">
           <div class="loading">Cargando...</div>
