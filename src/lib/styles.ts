@@ -271,6 +271,28 @@ label {
   color: var(--color-text-light);
   font-size: 0.8125rem;
   margin-top: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.icon-button {
+  background: transparent;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  font-size: 1rem;
+  opacity: 0.6;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.icon-button:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.icon-button:active {
+  transform: scale(0.95);
 }
 
 .modal {
